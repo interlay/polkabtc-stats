@@ -4,8 +4,6 @@
   "controllerPathGlobs": ["src/**/*Controller.ts"],
   "spec": {
     "outputDirectory": "build",
-    "host": "localhost:3001",
-    "schemes": ["http"],
     "name": "StatsApi",
     "specVersion": 3
   },
