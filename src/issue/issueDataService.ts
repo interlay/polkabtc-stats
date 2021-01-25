@@ -1,7 +1,6 @@
-import { Pool } from "pg";
 import { Issue, SatoshisTimeData } from "./issueModels";
 
-const pool = new Pool({ ssl: { rejectUnauthorized: false } });
+import pool from "../common/pool";
 
 function dateToMidnight(timestamp: number): number {
     const date = new Date(timestamp);

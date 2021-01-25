@@ -15,4 +15,4 @@ export interface Issue {
 export interface SatoshisTimeData {
     date: number;
     sat: number;
-}
+};
