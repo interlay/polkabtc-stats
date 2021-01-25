@@ -3,3 +3,5 @@ build/
 client/
 dist/
 yarn-error.log
+.env
+*.tmp

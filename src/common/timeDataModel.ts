@@ -1,4 +1,4 @@
 export interface TimeDataPoint {
-    blockHeight: number;
-    cumulativeTotal: number;
+    date: number;
+    count: number;
 }

@@ -4,7 +4,6 @@ export interface Issue {
     creation: string;
     vaultBTCAddress: string;
     vaultDOTAddress: string;
-    transactionBlockHeight: number;
     btcTxId: string;
     confirmations: number;
     completed: boolean;
@@ -12,3 +11,8 @@ export interface Issue {
     fee: string;
     griefingCollateral: string;
 };
+
+export interface SatoshisTimeData {
+    date: number;
+    sat: number;
+}
