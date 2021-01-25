@@ -4,13 +4,13 @@ A stats API wrapping a PostgreSQL database, to aggregate and make available hist
 
 ## Usage
 
-Ensure the proper environment variables for the PostgreSQL connection are set.
+Ensure the proper environment variables for the PostgreSQL connection are set (`PGHOST`, `PGPORT`, `PGDATABASE`, `PGUSER`, `PGPASSWORD`).
 
 ```shell
 yarn install
 yarn dev
 ```
-Then navigate to `localhost:3000/docs` for the SwaggerUI, or to the defined routes.
+Then navigate to `localhost:3007/docs` for the SwaggerUI, or to the defined routes.
 
 ### For deployment
 Run `yarn start` instead.
@@ -26,7 +26,7 @@ This builds the client generated from the OpenAPI spec (which can then be publis
 ### Usage
 ```typescript
 import * as polkabtcStats from "@interlay/polkabtc-stats";
-const statsApi = new polkabtcStats.DefaultApi(new polkabtcStats.Configuration({ basePath: "http://localhost:3001" }));
+const statsApi = new polkabtcStats.StatsApi(new polkabtcStats.Configuration({ basePath: "http://localhost:3001" }));
 const issues = (await statsApi.getTotalSuccessfulIssues()).data;
 ```
 
