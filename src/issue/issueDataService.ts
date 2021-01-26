@@ -1,15 +1,7 @@
 import { Issue, SatoshisTimeData } from "./issueModels";
 
 import pool from "../common/pool";
-
-function dateToMidnight(timestamp: number): number {
-    const date = new Date(timestamp);
-    date.setMilliseconds(0);
-    date.setSeconds(0);
-    date.setMinutes(0);
-    date.setHours(0);
-    return date.getTime();
-}
+import { dateToMidnight, msInDay } from "../common/util";
 
 export async function getSuccessfulIssues(): Promise<string> {
     try {
@@ -28,7 +20,6 @@ export async function getRecentDailyIssues(
 ): Promise<SatoshisTimeData[]> {
     try {
         let query = "";
-        const msInDay = 86400 * 1000;
         const dayBoundaries: number[] = [];
         for (let i = 0; i < daysBack; i++) {
             const dayBoundary = dateToMidnight(Date.now() - i * msInDay);

@@ -1,5 +1,4 @@
 # PolkaBTC Stats API
-====
 A stats API wrapping a PostgreSQL database, to aggregate and make available historic data about PolkaBTC parachain operation.
 
 ## Usage
