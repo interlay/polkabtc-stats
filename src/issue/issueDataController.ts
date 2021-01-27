@@ -8,7 +8,7 @@ import { Issue, SatoshisTimeData } from "./issueModels";
 
 @Tags("stats")
 @Route("issues")
-export class CumulativeIssuesController extends Controller {
+export class IssuesController extends Controller {
     @Get("totalSuccessful")
     public async getTotalSuccessfulIssues(): Promise<string> {
         return getSuccessfulIssues();

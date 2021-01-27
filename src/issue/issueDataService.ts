@@ -1,7 +1,7 @@
 import { Issue, SatoshisTimeData } from "./issueModels";
 
 import pool from "../common/pool";
-import { dateToMidnight, msInDay } from "../common/util";
+import { runPerDayQuery } from "../common/util";
 
 export async function getSuccessfulIssues(): Promise<string> {
     try {
@@ -19,28 +19,16 @@ export async function getRecentDailyIssues(
     daysBack: number
 ): Promise<SatoshisTimeData[]> {
     try {
-        let query = "";
-        const dayBoundaries: number[] = [];
-        for (let i = 0; i < daysBack; i++) {
-            const dayBoundary = dateToMidnight(Date.now() - i * msInDay);
-            dayBoundaries.push(dayBoundary);
-            query += `SELECT
+        return (await runPerDayQuery(daysBack, (i, ts) =>
+            `SELECT
                     '${i}' AS idx,
                     SUM(amount_btc::INTEGER)
                 FROM
                     v_parachain_data_execute_issue AS ex
                     LEFT OUTER JOIN v_parachain_data_request_issue AS req
                         USING (issue_id)
-                WHERE ex.block_ts < '${new Date(dayBoundary).toISOString()}'\n
-                union all\n`;
-        }
-        query = query.slice(0, -10); // last 'union all'
-        const res = (await pool.query(query)).rows.sort(
-            (a, b) => a.idx - b.idx
-        );
-        return res
-            .map((row, i) => ({ date: dayBoundaries[i], sat: row.sum }))
-            .reverse();
+                WHERE ex.block_ts < '${ts}'`))
+            .map((row) => ({date: row.date, sat: row.count}));
     } catch (e) {
         console.error(e);
         throw e;
