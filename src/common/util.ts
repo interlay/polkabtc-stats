@@ -16,6 +16,7 @@ export function dateToMidnight(timestamp: number): number {
  * Helper function to run cumulative queries for a number of consecutive days.
  * @param singleDayQueryBuilder: a function that takes an index and a timestamp string, and must return a query that returns the cumulative total for a single day.
  *  - the returned query MUST have an "idx" column, with the value of the idx parameter
+ *  - the returned query MUST have a "value" column, with the datapoint of the query
  *  - the returned query MUST contain a WHERE clause limiting results to those STRICTLY BEFORE the timestamp
  **/
 export async function runPerDayQuery(
@@ -35,6 +36,6 @@ export async function runPerDayQuery(
     query = query.slice(0, -10); // last 'union all'
     const res = (await pool.query(query)).rows.sort((a, b) => a.idx - b.idx);
     return res
-        .map((row, i) => ({ date: dayBoundaries[i], count: row.count }))
+        .map((row, i) => ({ date: dayBoundaries[i], value: row.value }))
         .reverse();
 }

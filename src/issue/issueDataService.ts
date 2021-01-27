@@ -22,13 +22,13 @@ export async function getRecentDailyIssues(
         return (await runPerDayQuery(daysBack, (i, ts) =>
             `SELECT
                     '${i}' AS idx,
-                    SUM(amount_btc::INTEGER)
+                    SUM(amount_btc::INTEGER) AS value
                 FROM
                     v_parachain_data_execute_issue AS ex
                     LEFT OUTER JOIN v_parachain_data_request_issue AS req
                         USING (issue_id)
                 WHERE ex.block_ts < '${ts}'`))
-            .map((row) => ({date: row.date, sat: row.count}));
+            .map((row) => ({date: row.date, sat: row.value}));
     } catch (e) {
         console.error(e);
         throw e;

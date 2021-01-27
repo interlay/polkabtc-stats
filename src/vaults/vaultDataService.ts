@@ -5,16 +5,18 @@ export async function getRecentDailyVaults(
     daysBack: number
 ): Promise<VaultCountTimeData[]> {
     try {
-        return runPerDayQuery(
-            daysBack,
-            (i, ts) =>
-                `SELECT
+        return (
+            await runPerDayQuery(
+                daysBack,
+                (i, ts) =>
+                    `SELECT
                     '${i}' AS idx,
-                    COUNT(*)
+                    COUNT(*) AS value
                 FROM
                     v_parachain_vault_registration
                 WHERE block_ts < '${ts}`
-        );
+            )
+        ).map((row) => ({ date: row.date, count: row.value }));
     } catch (e) {
         console.error(e);
         throw e;
@@ -31,7 +33,7 @@ export async function getRecentDailyCollateral(
                 (i, ts) =>
                     `SELECT
                         ${i} as idx,
-                        sum(balance)
+                        sum(balance) AS value
                     FROM
                         (
                             select balance, block_ts from v_parachain_collateral_lock as l
@@ -42,7 +44,7 @@ export async function getRecentDailyCollateral(
                         ) as un
                     WHERE block_ts < '${ts}'`
             )
-        ).map((row) => ({ date: row.date, amount: row.count }));
+        ).map((row) => ({ date: row.date, amount: row.value }));
     } catch (e) {
         console.error(e);
         throw e;
