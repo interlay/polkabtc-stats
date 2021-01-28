@@ -1,13 +1,24 @@
+import format from "pg-format";
 import { Issue, SatoshisTimeData } from "./issueModels";
 
 import pool from "../common/pool";
 import { runPerDayQuery } from "../common/util";
 
-export async function getSuccessfulIssues(): Promise<string> {
+export async function getTotalSuccessfulIssues(): Promise<string> {
     try {
         const res = await pool.query(
             "select count(*) from v_parachain_executed_issues"
         );
+        return res.rows[0].count;
+    } catch (e) {
+        console.error(e);
+        throw e;
+    }
+}
+
+export async function getTotalIssues(): Promise<string> {
+    try {
+        const res = await pool.query("select count(*) from v_parachain_data_request_issue");
         return res.rows[0].count;
     } catch (e) {
         console.error(e);
@@ -57,9 +68,9 @@ export async function getPagedIssues(
                         issue_id, true AS executed
                     FROM "v_parachain_data_execute_issue")
                 AS es USING (issue_id)
-            ORDER BY $1 ${sortAsc ? "ASC" : "DESC"}, issue_id ASC
-            LIMIT $2 OFFSET $3`,
-            [sortBy, perPage, page * perPage]
+            ORDER BY ${format.ident(sortBy)} ${sortAsc ? "ASC" : "DESC"}, issue_id ASC
+            LIMIT $1 OFFSET $2`,
+            [perPage, page * perPage]
         );
         return res.rows.map((row) => ({
             id: row.issue_id,

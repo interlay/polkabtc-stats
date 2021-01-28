@@ -1,6 +1,7 @@
 import { Controller, Get, Query, Route, Tags } from "tsoa";
 import {
-    getSuccessfulIssues,
+    getTotalSuccessfulIssues,
+    getTotalIssues,
     getRecentDailyIssues,
     getPagedIssues,
 } from "./issueDataService";
@@ -11,7 +12,12 @@ import { Issue, SatoshisTimeData } from "./issueModels";
 export class IssuesController extends Controller {
     @Get("totalSuccessful")
     public async getTotalSuccessfulIssues(): Promise<string> {
-        return getSuccessfulIssues();
+        return getTotalSuccessfulIssues();
+    }
+
+    @Get("total")
+    public async getTotalIssues(): Promise<string> {
+        return getTotalIssues();
     }
 
     @Get("recentDaily")
