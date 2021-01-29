@@ -12,19 +12,37 @@ yarn build
 yarn client
 yarn dev
 ```
+
 Then navigate to `localhost:3007/docs` for the SwaggerUI, or to the defined routes.
 
-### For deployment
+### Deployment
+
 Run `yarn start` instead.
 
 ## Client
 
 ```shell
-#yarn install, if necessary
+# yarn install, if necessary
 yarn build
 yarn client
 ```
 This builds the client generated from the OpenAPI spec (which can then be published using `yarn publish`.
+
+### Testing
+
+To build the database from the [btc-parachain](https://github.com/interlay/btc-parachain) setup postgresql and run the
+included monitoring service.
+
+```shell
+docker run --rm -e POSTGRES_USER=user -e POSTGRES_PASSWORD=password --network host --name postgres -p 5432:5432 postgres:11
+cat scripts/create.sql | docker exec -i postgres psql -U user
+
+export PGDATABASE="polkabtc_beta"
+export PGUSER="polkabtc_beta_user"
+export PGPASSWORD="password"
+
+MONITOR=1 yarn dev
+```
 
 ### Usage
 
