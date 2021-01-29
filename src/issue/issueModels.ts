@@ -11,8 +11,3 @@ export interface Issue {
     fee: string;
     griefingCollateral: string;
 };
-
-export interface SatoshisTimeData {
-    date: number;
-    sat: number;
-};

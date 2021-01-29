@@ -5,7 +5,8 @@ import {
     getRecentDailyIssues,
     getPagedIssues,
 } from "./issueDataService";
-import { Issue, SatoshisTimeData } from "./issueModels";
+import { Issue } from "./issueModels";
+import { SatoshisTimeData } from "../common/commonModels";
 
 @Tags("stats")
 @Route("issues")
