@@ -35,10 +35,9 @@ included monitoring service.
 
 ```shell
 docker run --rm -e POSTGRES_USER=user -e POSTGRES_PASSWORD=password --network host --name postgres -p 5432:5432 postgres:11
-cat scripts/create.sql | docker exec -i postgres psql -U user
 
-export PGDATABASE="polkabtc_beta"
-export PGUSER="polkabtc_beta_user"
+export PGDATABASE="postgres"
+export PGUSER="user"
 export PGPASSWORD="password"
 
 MONITOR=1 yarn dev
