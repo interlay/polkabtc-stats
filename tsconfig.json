@@ -5,23 +5,19 @@
         "module": "commonjs",
         "outDir": "./build",
         "declaration": true,
-
         "strict": true,
         "noImplicitAny": true,
         "strictNullChecks": true,
         "strictFunctionTypes": true,
         "strictBindCallApply": true,
-        "strictPropertyInitialization": true,
+        "strictPropertyInitialization": false,
         "noImplicitThis": true,
         "alwaysStrict": true,
-
         "noUnusedLocals": true,
         "noUnusedParameters": true,
         "noImplicitReturns": true,
-
         "experimentalDecorators": true,
         "emitDecoratorMetadata": true,
-
         "moduleResolution": "node",
         "resolveJsonModule": true,
         "esModuleInterop": true

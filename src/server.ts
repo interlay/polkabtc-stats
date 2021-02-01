@@ -1,8 +1,11 @@
+// Must be at top
+import 'reflect-metadata';
+
 import { app } from "./app";
 import monitor from "./monitor";
 
 const PORT = process.env.PORT || 3007;
-const MONITOR = process.env.RUN_MONITOR ? true : false;
+const MONITOR = process.env.MONITOR ? true : false;
 const ENDPOINT_URL = process.env.ENDPOINT_URL || 'ws://localhost:9944';
 
 app.listen(PORT, () =>
