@@ -10,11 +10,11 @@ export async function getRecentDailyVaults(
                 daysBack,
                 (i, ts) =>
                     `SELECT
-                    '${i}' AS idx,
+                    ${i} AS idx,
                     COUNT(*) AS value
                 FROM
                     v_parachain_vault_registration
-                WHERE block_ts < '${ts}`
+                WHERE block_ts < '${ts}'`
             )
         ).map((row) => ({ date: row.date, count: row.value }));
     } catch (e) {

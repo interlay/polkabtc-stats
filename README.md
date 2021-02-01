@@ -4,7 +4,7 @@ A stats API wrapping a PostgreSQL database, to aggregate and make available hist
 
 ## Usage
 
-Ensure the proper environment variables for the PostgreSQL connection are set (`PGHOST`, `PGPORT`, `PGDATABASE`, `PGUSER`, `PGPASSWORD`).
+Ensure the proper environment variables for the PostgreSQL connection are set (`PGHOST`, `PGPORT`, `PGDATABASE`, `PGUSER`, `PGPASSWORD`). For client generation, ensure `java` is in the path.
 
 ```shell
 yarn install
@@ -26,7 +26,7 @@ Run `yarn start` instead.
 yarn build
 yarn client
 ```
-This builds the client generated from the OpenAPI spec (which can then be published using `yarn publish`.
+This builds the client generated from the OpenAPI spec (which can then be published using `yarn publish`).
 
 ### Testing
 

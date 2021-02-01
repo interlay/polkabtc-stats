@@ -23,3 +23,9 @@ export async function getPagedBlocks(
         relay_ts: row.relay_ts,
     }));
 }
+
+export async function totalRelayedBlocks(): Promise<string> {
+    const res = await pool.query(`SELECT count(*) from "v_parachain_data"
+        WHERE "section"='btcRelay'::text AND "method"='StoreMainChainHeader'::text`);
+    return res.rows[0].count;
+}

@@ -1,5 +1,5 @@
 import pool from "./pool";
-import { TimeDataPoint } from "./timeDataModel";
+import { TimeDataPoint } from "./commonModels";
 
 export const msInDay = 86400 * 1000;
 
