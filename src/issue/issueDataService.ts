@@ -39,7 +39,7 @@ export async function getRecentDailyIssues(
                 (i, ts) =>
                     `SELECT
                     '${i}' AS idx,
-                    SUM(amount_btc::INTEGER) AS value
+                    coalesce(SUM(amount_btc::INTEGER), 0) AS value
                 FROM
                     v_parachain_data_execute_issue AS ex
                     LEFT OUTER JOIN v_parachain_data_request_issue AS req

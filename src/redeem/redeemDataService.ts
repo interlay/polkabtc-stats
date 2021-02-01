@@ -33,7 +33,7 @@ export async function getTotalAmount(): Promise<string> {
     try {
         const res = await pool.query(`
             SELECT
-                sum(amount_polka_btc::integer)
+                coalesce(sum(amount_polka_btc::integer), 0) as sum
             FROM
                 "v_parachain_redeem_request"
                 INNER JOIN "v_parachain_redeem_execute"
@@ -55,7 +55,7 @@ export async function getRecentDailyRedeems(
                 (i, ts) =>
                     `SELECT
                         '${i}' AS idx,
-                        SUM(amount_polka_btc::INTEGER) AS value
+                        coalesce(SUM(amount_polka_btc::INTEGER), 0) AS value
                     FROM
                         v_parachain_redeem_execute AS ex
                         LEFT OUTER JOIN v_parachain_redeem_request AS req

@@ -8,7 +8,8 @@ import { ViewEntity, ViewColumn } from "typeorm";
         v_parachain_data.block_ts
         FROM v_parachain_data
         WHERE ((v_parachain_data.section = 'collateral'::text) AND (v_parachain_data.method = 'SlashCollateral'::text));
-    `
+    `,
+    name: "v_parachain_collateral_slash",
 })
 export class VParachainCollateralSlash {
 

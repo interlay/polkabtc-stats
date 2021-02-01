@@ -7,7 +7,8 @@ import { ViewEntity, ViewColumn } from "typeorm";
         v_parachain_data.block_ts
         FROM v_parachain_data
         WHERE ((v_parachain_data.section = 'vaultRegistry'::text) AND (v_parachain_data.method = 'RegisterVault'::text));
-    `
+    `,
+    name: "v_parachain_vault_registration",
 })
 export class VParachainVaultRegistration {
 

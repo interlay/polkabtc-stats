@@ -7,7 +7,8 @@ import { ViewEntity, ViewColumn } from "typeorm";
         v_parachain_data.method
         FROM v_parachain_data
         WHERE ((v_parachain_data.section = 'vaultRegistry'::text) AND ((v_parachain_data.method = 'RedeemTokens'::text) OR (v_parachain_data.method = 'IssueTokens'::text)));
-    `
+    `,
+    name: "v_parachain_vault_issue_redeem",
 })
 export class VParachainVaultIssueRedeem {
 

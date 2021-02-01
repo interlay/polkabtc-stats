@@ -12,7 +12,8 @@ import { ViewEntity, ViewColumn } from "typeorm";
         v_parachain_data.event_data
         FROM v_parachain_data
         WHERE ((v_parachain_data.section = 'issue'::text) AND (v_parachain_data.method = 'ExecuteIssue'::text));
-    `
+    `,
+    name: "v_parachain_data_execute_issue",
 })
 export class VParachainDataExecuteIssue {
 

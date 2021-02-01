@@ -8,7 +8,8 @@ import { ViewEntity, ViewColumn } from "typeorm";
         e.block_ts
         FROM (v_parachain_data_request_issue r
         JOIN v_parachain_data_cancel_issue e ON ((r.issue_id = e.issue_id)));
-    `
+    `,
+    name: "v_parachain_canceled_issues",
 })
 export class VParachainCanceledIssues {
 

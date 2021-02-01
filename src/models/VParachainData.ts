@@ -8,7 +8,8 @@ import { ViewEntity, ViewColumn } from "typeorm";
         (parachain_events.data ->> 'method'::text) AS method,
         (parachain_events.data -> 'data'::text) AS event_data
         FROM parachain_events;
-    `
+    `,
+    name: "v_parachain_data",
 })
 export class VParachainData {
 

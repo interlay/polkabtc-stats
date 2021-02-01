@@ -12,7 +12,8 @@ import { ViewEntity, ViewColumn } from "typeorm";
         2 AS total_locked_dot,
         reg.vault_id
         FROM v_parachain_vault_registration reg;
-`
+`,
+    name: "v_parachain_vault_summary",
 })
 export class VParachainVaultSummary {
 

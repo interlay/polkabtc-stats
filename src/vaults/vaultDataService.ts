@@ -33,7 +33,7 @@ export async function getRecentDailyCollateral(
                 (i, ts) =>
                     `SELECT
                         ${i} as idx,
-                        sum(balance) AS value
+                        coalesce(sum(balance), 0) AS value
                     FROM
                         (
                             select balance, block_ts from v_parachain_collateral_lock as l

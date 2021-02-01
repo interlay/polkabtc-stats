@@ -19,6 +19,11 @@ import { VParachainExecutedIssues } from "../models/VParachainExecutedIssues";
 import { VParachainVaultIssueRedeem } from "../models/VParachainVaultIssueRedeem";
 import { VParachainVaultRegistration } from "../models/VParachainVaultRegistration";
 import { VParachainVaultSummary } from "../models/VParachainVaultSummary";
+import { VParachainRedeemCancel } from "../models/VParachainRedeemCancel";
+import { VParachainRedeemExecute } from "../models/VParachainRedeemExecute";
+import { VParachainRedeemRequest } from "../models/VParachainRedeemRequest";
+import { VParachainStakedrelayerRegister } from "../models/VParachainStakedrelayerRegister";
+import { VParachainStakedrelayerDeregister } from "../models/VParachainStakedrelayerDeregister";
 
 function generateEvents(events: EventRecord[], block: SignedBlock, timestamp: Moment) {
     const data = []
@@ -93,6 +98,11 @@ export default async function start(url: string, network = "regtest") {
             VParachainVaultIssueRedeem,
             VParachainVaultRegistration,
             VParachainVaultSummary,
+            VParachainStakedrelayerDeregister,
+            VParachainStakedrelayerRegister,
+            VParachainRedeemRequest,
+            VParachainRedeemExecute,
+            VParachainRedeemCancel,
         ]
     });
 
