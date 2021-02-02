@@ -3,17 +3,18 @@
 A stats API wrapping a PostgreSQL database, to aggregate and make available historic data about PolkaBTC parachain operation.
 
 ## Usage
+*For the current instructions on runnin against a local parachain alongside the monitoring service, see the *Testing* section below.*
 
-Ensure the proper environment variables for the PostgreSQL connection are set (`PGHOST`, `PGPORT`, `PGDATABASE`, `PGUSER`, `PGPASSWORD`). For client generation, ensure `java` is in the path.
+Ensure the proper environment variables for the PostgreSQL connection are set (`PGHOST`, `PGPORT`, `PGDATABASE`, `PGUSER`, `PGPASSWORD`). For client generation, ensure `java` is in the path (this is not necessary just to run the stats server).
 
 ```shell
 yarn install
-yarn build
-yarn client
-yarn dev
+yarn build # generate the routes and run typechecking
+yarn client # generate the client, if desired (not necessary just to run the server)
+yarn dev # start the server with file watching
 ```
 
-Then navigate to `localhost:3007/docs` for the SwaggerUI, or to the defined routes.
+Then navigate to `localhost:3007/docs` for the SwaggerUI, or to the defined routes to make use of the APIs.
 
 ### Deployment
 
@@ -28,7 +29,7 @@ yarn client
 ```
 This builds the client generated from the OpenAPI spec (which can then be published using `yarn publish`).
 
-### Testing
+## Testing
 
 To build the database from the [btc-parachain](https://github.com/interlay/btc-parachain) setup postgresql and run the
 included monitoring service.
