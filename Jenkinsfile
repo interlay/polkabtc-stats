@@ -22,6 +22,14 @@ pipeline {
       volumeMounts:
         - name: jenkins-docker-cfg
           mountPath: /kaniko/.docker
+    - name: openapi
+      image: openapitools/openapi-generator-cli:v5.0.0
+      imagePullPolicy: Always
+      command:
+        - cat
+      tty: true
+      securityContext:
+        allowPrivilegeEscalation: false
     volumes:
       - name: jenkins-docker-cfg
         projected:
@@ -65,6 +73,21 @@ pipeline {
                 }
             }
         }
+        stage('Release') {
+          when {
+            tag '*'
+          }
+          steps {
+            sh 'yarn install'
+            stash(name: "tsoa-build", includes: 'build')
+            container(name: 'openapi', shell: '/bin/bash') {
+                unstash("tsoa-build")
+                sh 'openapi-generator-cli generate -i build/swagger.json -g typescript-axios -o client && tsc -d client/*.ts --outdir dist'
+                stash(name: "openapi-build", includes: 'dist')
+            }
+          }
+        }
+
     }
     post {
       always {
