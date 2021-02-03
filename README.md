@@ -3,14 +3,16 @@
 A stats API wrapping a PostgreSQL database, to aggregate and make available historic data about PolkaBTC parachain operation.
 
 ## Usage
-*For the current instructions on runnin against a local parachain alongside the monitoring service, see the *Testing* section below.*
 
-Ensure the proper environment variables for the PostgreSQL connection are set (`PGHOST`, `PGPORT`, `PGDATABASE`, `PGUSER`, `PGPASSWORD`). For client generation, ensure `java` is in the path (this is not necessary just to run the stats server).
+*For the current instructions on running against a local parachain alongside the monitoring service, see the *Testing* section below.*
+
+Ensure the proper environment variables for the PostgreSQL connection are set (`PGHOST`, `PGPORT`, `PGDATABASE`, `PGUSER`, `PGPASSWORD`).
 
 ```shell
+export PGSSLMODE=require # for secure connections
+
 yarn install
 yarn build # generate the routes and run typechecking
-yarn client # generate the client, if desired (not necessary just to run the server)
 yarn dev # start the server with file watching
 ```
 
@@ -22,11 +24,12 @@ Run `yarn start` instead.
 
 ## Client
 
+For client generation, ensure `java` is in the path (this is not necessary just to run the stats server).
+
 ```shell
-# yarn install, if necessary
-yarn build
 yarn client
 ```
+
 This builds the client generated from the OpenAPI spec (which can then be published using `yarn publish`).
 
 ## Testing

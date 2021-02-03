@@ -1,6 +1,6 @@
 import { Pool } from "pg";
-const isRemote = process.env.PGHOST && process.env.PGHOST !== "localhost";
+const enableSSL = process.env.PGSSLMODE && process.env.PGSSLMODE === "require";
 const pool = new Pool(
-    isRemote ? { ssl: { rejectUnauthorized: false } } : { ssl: false }
+    enableSSL ? { ssl: { rejectUnauthorized: false } } : { ssl: false }
 );
 export default pool;
