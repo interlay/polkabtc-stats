@@ -65,6 +65,16 @@ pipeline {
                 }
             }
         }
+        stage('Release') {
+          when {
+            tag '*'
+          }
+          steps {
+            echo "Building $BRANCH_NAME"
+            echo "Building $TAG_NAME"
+          }
+        }
+
     }
     post {
       always {
