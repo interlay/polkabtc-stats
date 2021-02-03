@@ -5,7 +5,7 @@ WORKDIR /usr/src
 COPY . /usr/src
 
 RUN set -ex; \
-    yarn install --frozen-lockfile --production; \
+    yarn install --frozen-lockfile; \
     yarn cache clean; \
     yarn run build
 

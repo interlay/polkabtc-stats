@@ -14,7 +14,7 @@
         "start": "node -r dotenv/config build/src/server.js"
     },
     "dependencies": {
-        "@interlay/polkabtc": "0.8.0",
+        "@interlay/polkabtc": "0.8.2",
         "@interlay/polkabtc-types": "0.4.0",
         "@polkadot/api": "3.6.1",
         "@polkadot/rpc-core": "3.6.1",
