@@ -1,10 +1,14 @@
-import { range } from 'lodash';
-import PromisePool from '@supercharge/promise-pool';
+import { range } from "lodash";
+import PromisePool from "@supercharge/promise-pool";
 import { EventRecord } from "@polkadot/types/interfaces/system";
-import { SignedBlock, Moment, BlockNumber } from "@polkadot/types/interfaces/runtime";
+import {
+    SignedBlock,
+    Moment,
+    BlockNumber,
+} from "@polkadot/types/interfaces/runtime";
 import { createPolkabtcAPI, PolkaBTCAPI } from "@interlay/polkabtc";
 
-import { Connection, createConnection, getRepository } from 'typeorm';
+import { Connection, createConnection, getRepository } from "typeorm";
 
 import { ParachainEvents } from "../models/ParachainEvents";
 import { VParachainData } from "../models/VParachainData";
@@ -24,11 +28,20 @@ import { VParachainRedeemExecute } from "../models/VParachainRedeemExecute";
 import { VParachainRedeemRequest } from "../models/VParachainRedeemRequest";
 import { VParachainStakedrelayerRegister } from "../models/VParachainStakedrelayerRegister";
 import { VParachainStakedrelayerDeregister } from "../models/VParachainStakedrelayerDeregister";
+import { VParachainStatusSuggest } from "../models/VParachainStatusSuggest";
+import { VParachainStatusVote } from "../models/VParachainStatusVote";
+import { VParachainStatusReject } from "../models/VParachainStatusReject";
+import { VParachainStatusForce } from "../models/VParachainStatusForce";
+import { VParachainStatusExecute } from "../models/VParachainStatusExecute";
 
-function generateEvents(events: EventRecord[], block: SignedBlock, timestamp: Moment) {
-    const data = []
+function generateEvents(
+    events: EventRecord[],
+    block: SignedBlock,
+    timestamp: Moment
+) {
+    const data = [];
     for (const { event } of events) {
-        if (event.section === 'system') {
+        if (event.section === "system") {
             continue;
         }
 
@@ -38,31 +51,35 @@ function generateEvents(events: EventRecord[], block: SignedBlock, timestamp: Mo
             timestamp: timestamp.toNumber(),
             section: event.section,
             method: event.method,
-            data: event.data.toJSON()
-        }
-        data.push(msg)
+            data: event.data.toJSON(),
+        };
+        data.push(msg);
     }
-    return data
+    return data;
 }
 
-async function insertBlockData(conn: Connection, polkaBTC: PolkaBTCAPI, blockNr: BlockNumber) {
-    const hash = await polkaBTC.api.rpc.chain.getBlockHash(blockNr)
-    const block = await polkaBTC.api.rpc.chain.getBlock(hash)
-    const timestamp = await polkaBTC.api.query.timestamp.now.at(hash)
+async function insertBlockData(
+    conn: Connection,
+    polkaBTC: PolkaBTCAPI,
+    blockNr: BlockNumber
+) {
+    const hash = await polkaBTC.api.rpc.chain.getBlockHash(blockNr);
+    const block = await polkaBTC.api.rpc.chain.getBlock(hash);
+    const timestamp = await polkaBTC.api.query.timestamp.now.at(hash);
 
-    const events = await polkaBTC.api.query.system.events.at(hash)
+    const events = await polkaBTC.api.query.system.events.at(hash);
 
-    console.log(`Processing block ${blockNr} ${hash}`)
+    console.log(`Processing block ${blockNr} ${hash}`);
 
-    const promises = []
+    const promises = [];
     for (let ev of generateEvents(events.toArray(), block, timestamp)) {
         let event = new ParachainEvents();
         event.data = ev;
         event.block_number = ev.blockNumber;
-        event.block_ts = new Date(ev.timestamp / 1000);
+        event.block_ts = new Date(ev.timestamp);
         promises.push(conn.manager.save(event));
     }
-    return Promise.all(promises)
+    return Promise.all(promises);
 }
 
 /**
@@ -70,7 +87,10 @@ async function insertBlockData(conn: Connection, polkaBTC: PolkaBTCAPI, blockNr:
  * @param pgclient DB client
  */
 async function lastProcessedBlock() {
-    const result = await getRepository("parachain_events").createQueryBuilder().select("MAX(block_number)", "last_block").getRawOne();
+    const result = await getRepository("parachain_events")
+        .createQueryBuilder()
+        .select("MAX(block_number)", "last_block")
+        .getRawOne();
     return result.last_block || 0;
 }
 
@@ -103,34 +123,46 @@ export default async function start(url: string, network = "regtest") {
             VParachainRedeemRequest,
             VParachainRedeemExecute,
             VParachainRedeemCancel,
-        ]
+            VParachainStatusSuggest,
+            VParachainStatusVote,
+            VParachainStatusExecute,
+            VParachainStatusReject,
+            VParachainStatusForce,
+        ],
     });
 
     // await conn.synchronize(true);
 
     const polkaBTC = await createPolkabtcAPI(url, network);
 
-    const lastDbBlock = await lastProcessedBlock()
-    const lastChainBlock = (await polkaBTC.api.rpc.chain.getHeader()).number.toNumber()
+    const lastDbBlock = await lastProcessedBlock();
+    const lastChainBlock = (
+        await polkaBTC.api.rpc.chain.getHeader()
+    ).number.toNumber();
 
-    console.log(`Running backfill from block ${lastDbBlock} to ${lastChainBlock}`)
+    console.log(
+        `Running backfill from block ${lastDbBlock} to ${lastChainBlock}`
+    );
 
-    await PromisePool
-        .withConcurrency(10)
+    await PromisePool.withConcurrency(10)
         .for(range(lastDbBlock, lastChainBlock))
-        .process(async blockNr => {
-            return await insertBlockData(conn, polkaBTC, blockNr as unknown as BlockNumber)
+        .process(async (blockNr) => {
+            return await insertBlockData(
+                conn,
+                polkaBTC,
+                (blockNr as unknown) as BlockNumber
+            );
         })
-        .then(() => console.log('Finished backfill'))
+        .then(() => console.log("Finished backfill"));
 
-    console.log('Subscribing to new blocks')
+    console.log("Subscribing to new blocks");
     polkaBTC.api.rpc.chain.subscribeNewHeads(async (header) => {
-        const blockNr = header.number.unwrap()
+        const blockNr = header.number.unwrap();
         try {
-            insertBlockData(conn, polkaBTC, blockNr)
+            insertBlockData(conn, polkaBTC, blockNr);
         } catch (error) {
             console.error(error);
             await conn.close();
         }
-    })
+    });
 }
