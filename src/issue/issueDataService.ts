@@ -3,7 +3,7 @@ import { Issue } from "./issueModels";
 import { SatoshisTimeData } from "../common/commonModels";
 
 import pool from "../common/pool";
-import { runPerDayQuery } from "../common/util";
+import { btcAddressToString, runPerDayQuery } from "../common/util";
 
 export async function getTotalSuccessfulIssues(): Promise<string> {
     try {
@@ -62,7 +62,7 @@ export async function getPagedIssues(
     try {
         const res = await pool.query(
             `SELECT
-                issue_id, amount_btc, block_number, vault_id, btc_address, cancelled, executed
+                issue_id, amount_btc, block_number, block_ts, vault_id, btc_address, cancelled, executed
             FROM
                 "v_parachain_data_request_issue"
                 LEFT OUTER JOIN
@@ -85,14 +85,13 @@ export async function getPagedIssues(
             id: row.issue_id,
             amountBTC: row.amount_btc,
             creation: row.block_number,
-            vaultBTCAddress: row.btc_address,
+            timestamp: row.block_ts,
+            vaultBTCAddress: btcAddressToString(row.btc_address),
             vaultDOTAddress: row.vault_id,
             btcTxId: "",
             confirmations: 0,
             completed: row.executed ? true : false,
             cancelled: row.cancelled ? true : false,
-            fee: "",
-            griefingCollateral: "",
         }));
     } catch (e) {
         console.error(e);

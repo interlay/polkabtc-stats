@@ -13,6 +13,15 @@ export function dateToMidnight(timestamp: number): number {
 }
 
 /**
+ * Helper function that takes an address object string from the database, e.g.
+ * '{\"P2WPKHv0\": \"0x040bd11dbf6463c55da1a3dec5443d0722c161a7\"}', and returns the
+ * actual address string from it
+ */
+export function btcAddressToString(addressObject: string): string {
+    return Object.values(JSON.parse(addressObject))[0] as string
+}
+
+/**
  * Helper function to run cumulative queries for a number of consecutive days.
  * @param singleDayQueryBuilder: a function that takes an index and a timestamp string, and must return a query that returns the cumulative total for a single day.
  *  - the returned query MUST have an "idx" column, with the value of the idx parameter
