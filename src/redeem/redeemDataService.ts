@@ -78,7 +78,7 @@ export async function getPagedRedeems(
     try {
         const res = await pool.query(
             `SELECT
-                redeem_id, amount_polka_btc, block_number, vault_id, btc_address, cancelled, executed
+                redeem_id, amount_polka_btc, block_number, block_ts, vault_id, btc_address, cancelled, executed
             FROM
                 "v_parachain_redeem_request"
                 LEFT OUTER JOIN
@@ -101,6 +101,7 @@ export async function getPagedRedeems(
             id: row.redeem_id,
             amountPolkaBTC: row.amount_polka_btc,
             creation: row.block_number,
+            timestamp: row.block_ts,
             btcAddress: btcAddressToString(row.btc_address),
             vaultDotAddress: row.vault_id,
             btcTxId: "",
