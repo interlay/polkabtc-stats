@@ -1,6 +1,6 @@
 import { Controller, Get, Query, Route, Tags } from "tsoa";
 import {
-    getPagedStatusUpdates,
+    getPagedStatusUpdates, getTotalStatusUpdates,
 } from "./parachainDataService";
 import { StatusUpdate } from "./parachainModels";
 
@@ -15,5 +15,10 @@ export class ParachainController extends Controller {
         @Query() sortAsc = false
     ): Promise<StatusUpdate[]> {
         return getPagedStatusUpdates(page, perPage, sortBy, sortAsc);
+    }
+
+    @Get("total")
+    public async getTotalParachainStatusUpdates(): Promise<string> {
+        return getTotalStatusUpdates();
     }
 }

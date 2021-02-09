@@ -3,6 +3,22 @@ import { StatusUpdate } from "./parachainModels";
 
 import pool from "../common/pool";
 
+export async function getTotalStatusUpdates(): Promise<string> {
+    try {
+        const res = await pool.query(`
+            select count(*) from (
+                 select block_number from v_parachain_status_suggest
+                 UNION ALL
+                 select block_number from v_parachain_status_force
+            ) as s
+        `);
+        return res.rows[0].count;
+    } catch (e) {
+        console.error(e);
+        throw e;
+    }
+}
+
 export async function getPagedStatusUpdates(
     page: number,
     perPage: number,
@@ -16,7 +32,6 @@ export async function getPagedStatusUpdates(
                 suggest.block_ts,
                 suggest.block_number,
                 suggest.new_status,
-                NULL AS old_status,
                 suggest.add_error,
                 suggest.remove_error,
                 suggest.btc_block_hash,
@@ -49,13 +64,12 @@ export async function getPagedStatusUpdates(
                         FROM v_parachain_status_vote
                         WHERE approve = 'false' GROUP BY update_id)
                   AS nays USING (update_id)
-            UNION
+            UNION ALL
             SELECT
                 NULL AS update_id,
                 block_ts,
                 block_number,
                 new_status,
-                NULL AS old_status,
                 add_error,
                 remove_error,
                 NULL AS btc_block_hash,
@@ -76,7 +90,6 @@ export async function getPagedStatusUpdates(
             id: row.update_id,
             timestamp: row.block_ts,
             proposedStatus: row.new_status,
-            previousStatus: row.old_status,
             addError: row.add_error,
             removeError: row.remove_error,
             btc_block_hash: row.btc_block_hash,
