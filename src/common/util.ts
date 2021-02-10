@@ -35,7 +35,7 @@ export async function runPerDayQuery(
     let query = "";
     const dayBoundaries: number[] = [];
     for (let i = 0; i < daysBack; i++) {
-        const dayBoundary = dateToMidnight(Date.now() - i * msInDay);
+        const dayBoundary = dateToMidnight(Date.now() - (i - 1) * msInDay);
         dayBoundaries.push(dayBoundary);
 
         query +=
