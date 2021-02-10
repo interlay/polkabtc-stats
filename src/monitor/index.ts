@@ -33,6 +33,7 @@ import { VParachainStatusVote } from "../models/VParachainStatusVote";
 import { VParachainStatusReject } from "../models/VParachainStatusReject";
 import { VParachainStatusForce } from "../models/VParachainStatusForce";
 import { VParachainStatusExecute } from "../models/VParachainStatusExecute";
+import {VParachainStakedrelayerSlash} from "../models/VParachainStakedrelayerSlash";
 
 function generateEvents(
     events: EventRecord[],
@@ -120,6 +121,7 @@ export default async function start(url: string, network = "regtest") {
             VParachainVaultSummary,
             VParachainStakedrelayerDeregister,
             VParachainStakedrelayerRegister,
+            VParachainStakedrelayerSlash,
             VParachainRedeemRequest,
             VParachainRedeemExecute,
             VParachainRedeemCancel,

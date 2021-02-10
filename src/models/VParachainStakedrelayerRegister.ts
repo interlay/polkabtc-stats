@@ -3,6 +3,8 @@ import { ViewEntity, ViewColumn } from "typeorm";
 @ViewEntity({
     expression: `
     SELECT (v_parachain_data.event_data ->> 0) AS relayer_id,
+        (v_parachain_data.event_data ->> 1) AS maturity,
+        (v_parachain_data.event_data ->> 2) AS stake,
         v_parachain_data.block_number,
         v_parachain_data.block_ts
     FROM v_parachain_data
@@ -12,6 +14,12 @@ import { ViewEntity, ViewColumn } from "typeorm";
 export class VParachainStakedrelayerRegister {
     @ViewColumn()
     relayer_id: string;
+
+    @ViewColumn()
+    maturity: number;
+
+    @ViewColumn()
+    stake: string;
 
     @ViewColumn()
     block_number: number;
