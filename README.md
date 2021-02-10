@@ -38,13 +38,29 @@ To build the database from the [btc-parachain](https://github.com/interlay/btc-p
 included monitoring service.
 
 ```shell
-docker run --rm -e POSTGRES_USER=user -e POSTGRES_PASSWORD=password --network host --name postgres -p 5432:5432 postgres:11
+docker run --rm --name postgres \
+    -p 5432:5432 \
+    -e POSTGRES_USER=user \
+    -e POSTGRES_PASSWORD=postgres \
+    postgres:11
 
 export PGDATABASE="postgres"
 export PGUSER="user"
 export PGPASSWORD="password"
 
 MONITOR=1 yarn dev
+```
+
+To persist the database, mount a local volume on the docker container.
+
+```shell
+mkdir -p $HOME/docker/volumes/postgres
+docker run --rm --name postgres \
+    -p 5432:5432 \
+    -e POSTGRES_USER=user \
+    -e POSTGRES_PASSWORD=postgres \
+    -v $HOME/docker/volumes/postgres:/var/lib/postgresql/data \
+    postgres:11
 ```
 
 ### Usage
