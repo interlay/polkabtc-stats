@@ -1,22 +1,21 @@
 # PolkaBTC Stats API
 
-This repository serves as a monitoring solution to ongoing events on the [PolkaBTC parachain](https://polkabtc.io/). 
-The service consists of two parts.
+This repository serves as a monitoring solution and API wrapper of ongoing events in the [PolkaBTC parachain](https://polkabtc.io/).
 
 
 ### Monitoring
 
-`polkabtc-stats` includes a service to extract all events from the BTC-Parachain into a PostgreSQL database for further processing.
+polkabtc-stats includes a service to extract all events from the BTC-Parachain into a PostgreSQL database for further processing.
 
-When first starting `polkabtc-stats` the service connects to a PolkaBTC archive node to process all events from genesis and stores them into a PostgreSQL database.
+When first starting, the service connects to a BTC-Parachain archive node to process all events from genesis and stores them into a PostgreSQL database.
 When it reaches the current block, it goes into a monitoring mode such that only the latest events from incoming blocks are parsed.
-On restarting `polkabtc-stats`, the service first checks the last processed block in the database and will continue to process events from blocks not yet in the database.
+On restarting, the service first checks the last processed block in the database and will continue to process events from blocks not yet in the database.
 
 ### API wrapper
 
 `polkabtc-stats` also provides an API wrapping around the PostgreSQL database, to aggregate and make available historic data about PolkaBTC parachain operation.
 
-When `polkabtc-stats` is running, queries to the PostgreSQL database can be made. The package provides pre-defined views to display relevant statistics.
+When the service is running, queries to the PostgreSQL database can be made. The package provides pre-defined views to display relevant statistics.
 This includes for example:
 
 - All issue requests
