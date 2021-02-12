@@ -76,7 +76,7 @@ included monitoring service.
 docker run --rm --name postgres \
     -p 5432:5432 \
     -e POSTGRES_USER=user \
-    -e POSTGRES_PASSWORD=postgres \
+    -e POSTGRES_PASSWORD=password \
     postgres:11
 
 export PGDATABASE="postgres"
@@ -93,7 +93,7 @@ mkdir -p $HOME/docker/volumes/postgres
 docker run --rm --name postgres \
     -p 5432:5432 \
     -e POSTGRES_USER=user \
-    -e POSTGRES_PASSWORD=postgres \
+    -e POSTGRES_PASSWORD=password \
     -v $HOME/docker/volumes/postgres:/var/lib/postgresql/data \
     postgres:11
 ```

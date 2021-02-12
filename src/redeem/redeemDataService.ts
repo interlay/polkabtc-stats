@@ -33,9 +33,9 @@ export async function getTotalAmount(): Promise<string> {
     try {
         const res = await pool.query(`
             SELECT
-                coalesce(sum(amount_polka_btc::integer), 0) as sum
+                coalesce(sum(req.amount_polka_btc::integer), 0) as sum
             FROM
-                "v_parachain_redeem_request"
+                "v_parachain_redeem_request" as req
                 INNER JOIN "v_parachain_redeem_execute"
                     USING (redeem_id)`);
         return res.rows[0].sum;
@@ -55,7 +55,7 @@ export async function getRecentDailyRedeems(
                 (i, ts) =>
                     `SELECT
                         '${i}' AS idx,
-                        coalesce(SUM(amount_polka_btc::INTEGER), 0) AS value
+                        coalesce(SUM(ex.amount_polka_btc::INTEGER), 0) AS value
                     FROM
                         v_parachain_redeem_execute AS ex
                         LEFT OUTER JOIN v_parachain_redeem_request AS req
@@ -78,19 +78,19 @@ export async function getPagedRedeems(
     try {
         const res = await pool.query(
             `SELECT
-                redeem_id, amount_polka_btc, block_number, block_ts, vault_id, btc_address, cancelled, executed
+                req.redeem_id, req.amount_polka_btc, req.block_number, req.block_ts, cl.reimbursed, req.vault_id, req.btc_address, cl.cancelled, ex.executed
             FROM
-                "v_parachain_redeem_request"
+                "v_parachain_redeem_request" as req
                 LEFT OUTER JOIN
                     (SELECT
-                        redeem_id, true AS cancelled
+                        redeem_id, reimbursed, true AS cancelled
                     FROM "v_parachain_redeem_cancel")
-                AS cs USING (redeem_id)
+                AS cl USING (redeem_id)
                 LEFT OUTER JOIN
                     (SELECT
                         redeem_id, true AS executed
                     FROM "v_parachain_redeem_execute")
-                AS es USING (redeem_id)
+                AS ex USING (redeem_id)
             ORDER BY ${format.ident(sortBy)} ${
                 sortAsc ? "ASC" : "DESC"
             }, redeem_id ASC
@@ -108,7 +108,7 @@ export async function getPagedRedeems(
             confirmations: 0,
             completed: row.executed ? true : false,
             cancelled: row.cancelled ? true : false,
-            reimbursed: false,
+            reimbursed: row.reimbursed? true : false,
             isExpired: false,
         }));
     } catch (e) {

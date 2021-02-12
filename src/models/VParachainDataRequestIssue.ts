@@ -5,9 +5,11 @@ import { ViewEntity, ViewColumn } from "typeorm";
         SELECT (v_parachain_data.event_data ->> 0) AS issue_id,
         (v_parachain_data.event_data ->> 1) AS requester,
         (v_parachain_data.event_data ->> 2) AS amount_btc,
-        (v_parachain_data.event_data ->> 3) AS vault_id,
-        (v_parachain_data.event_data ->> 4) AS btc_address,
-        (v_parachain_data.event_data ->> 5) AS vault_wallet_pubkey,
+        (v_parachain_data.event_data ->> 3) AS fee_polkabtc,
+        (v_parachain_data.event_data ->> 4) AS griefing_collateral,
+        (v_parachain_data.event_data ->> 5) AS vault_id,
+        (v_parachain_data.event_data ->> 6) AS btc_address,
+        (v_parachain_data.event_data ->> 7) AS vault_wallet_pubkey,
         v_parachain_data.block_number,
         v_parachain_data.block_ts,
         v_parachain_data.section,
@@ -43,6 +45,12 @@ export class VParachainDataRequestIssue {
 
     @ViewColumn()
     amount_btc: string;
+
+    @ViewColumn()
+    fee_polkabtc: string;
+
+    @ViewColumn()
+    griefing_collateral: string;
 
     @ViewColumn()
     vault_id: string;

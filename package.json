@@ -1,6 +1,6 @@
 {
     "name": "@interlay/polkabtc-stats",
-    "version": "0.0.14",
+    "version": "0.0.16",
     "license": "MIT",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",

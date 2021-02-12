@@ -4,6 +4,7 @@ import { ViewEntity, ViewColumn } from "typeorm";
     expression: `
         SELECT (v_parachain_data.event_data ->> 0) AS issue_id,
             (v_parachain_data.event_data ->> 1) AS account_id,
+            (v_parachain_data.event_data ->> 2) AS griefing_collateral,
             v_parachain_data.block_number,
             v_parachain_data.block_ts,
             v_parachain_data.section,
@@ -37,4 +38,6 @@ export class VParachainDataCancelIssue {
     @ViewColumn()
     account_id: string;
 
+    @ViewColumn()
+    griefing_collateral: string;
 }

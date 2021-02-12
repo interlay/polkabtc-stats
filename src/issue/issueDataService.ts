@@ -39,7 +39,7 @@ export async function getRecentDailyIssues(
                 (i, ts) =>
                     `SELECT
                     '${i}' AS idx,
-                    coalesce(SUM(amount_btc::INTEGER), 0) AS value
+                    coalesce(SUM(ex.amount_btc::INTEGER), 0) AS value
                 FROM
                     v_parachain_data_execute_issue AS ex
                     LEFT OUTER JOIN v_parachain_data_request_issue AS req
@@ -62,19 +62,19 @@ export async function getPagedIssues(
     try {
         const res = await pool.query(
             `SELECT
-                issue_id, amount_btc, block_number, block_ts, vault_id, btc_address, cancelled, executed
+                req.issue_id, req.amount_btc, req.block_number, req.block_ts, req.vault_id, req.btc_address, cl.cancelled, ex.executed
             FROM
-                "v_parachain_data_request_issue"
+                "v_parachain_data_request_issue" as req
                 LEFT OUTER JOIN
                     (SELECT
                         issue_id, true AS cancelled
                     FROM "v_parachain_data_cancel_issue")
-                AS cs USING (issue_id)
+                AS cl USING (issue_id)
                 LEFT OUTER JOIN
                     (SELECT
                         issue_id, true AS executed
                     FROM "v_parachain_data_execute_issue")
-                AS es USING (issue_id)
+                AS ex USING (issue_id)
             ORDER BY ${format.ident(sortBy)} ${
                 sortAsc ? "ASC" : "DESC"
             }, issue_id ASC
