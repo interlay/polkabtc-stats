@@ -3,7 +3,7 @@ import { Issue } from "./issueModels";
 import { SatoshisTimeData } from "../common/commonModels";
 
 import pool from "../common/pool";
-import { btcAddressToString, runPerDayQuery } from "../common/util";
+import { btcAddressToString, BtcNetworkName, runPerDayQuery } from "../common/util";
 
 export async function getTotalSuccessfulIssues(): Promise<string> {
     try {
@@ -57,7 +57,8 @@ export async function getPagedIssues(
     page: number,
     perPage: number,
     sortBy = "block_number",
-    sortAsc = false
+    sortAsc = false,
+    network: BtcNetworkName,
 ): Promise<Issue[]> {
     try {
         const res = await pool.query(
@@ -86,7 +87,7 @@ export async function getPagedIssues(
             amountBTC: row.amount_btc,
             creation: row.block_number,
             timestamp: row.block_ts,
-            vaultBTCAddress: btcAddressToString(row.btc_address),
+            vaultBTCAddress: btcAddressToString(row.btc_address, network),
             vaultDOTAddress: row.vault_id,
             btcTxId: "",
             confirmations: 0,

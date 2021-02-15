@@ -1,7 +1,10 @@
 import pool from "./pool";
 import { TimeDataPoint } from "./commonModels";
+import { payments, networks } from "bitcoinjs-lib";
 
 export const msInDay = 86400 * 1000;
+
+export type BtcNetworkName = "mainnet" | "testnet" | "regtest";
 
 export function dateToMidnight(timestamp: number): number {
     const date = new Date(timestamp);
@@ -12,13 +15,32 @@ export function dateToMidnight(timestamp: number): number {
     return date.getTime();
 }
 
-/**
- * Helper function that takes an address object string from the database, e.g.
- * '{\"P2WPKHv0\": \"0x040bd11dbf6463c55da1a3dec5443d0722c161a7\"}', and returns the
- * actual address string from it
- */
-export function btcAddressToString(addressObject: string): string {
-    return Object.values(JSON.parse(addressObject))[0] as string
+export function btcAddressToString(
+    addressObject: string,
+    network: BtcNetworkName
+): string {
+    const parsedAddress = JSON.parse(addressObject);
+    const hash = Buffer.from(
+        Object.values<string>(parsedAddress)[0].substring(2),
+        "hex"
+    );
+    const paymentType = Object.keys(parsedAddress)[0];
+    const payment =
+        paymentType === "P2WPKHv0"
+            ? payments.p2wpkh
+            : paymentType === "P2PKH"
+            ? payments.p2pkh
+            : paymentType === "P2SH"
+            ? payments.p2sh
+            : () => {
+                  throw new Error("Invalid address type");
+              };
+    return (
+        payment({
+            hash,
+            network: networks[network === "mainnet" ? "bitcoin" : network],
+        }).address || ""
+    );
 }
 
 /**

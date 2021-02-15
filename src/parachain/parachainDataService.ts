@@ -1,5 +1,5 @@
 import format from "pg-format";
-import { StatusUpdate } from "./parachainModels";
+import { ParachainStatusUpdate } from "./parachainModels";
 
 import pool from "../common/pool";
 
@@ -24,7 +24,7 @@ export async function getPagedStatusUpdates(
     perPage: number,
     sortBy = "block_number",
     sortAsc = false
-): Promise<StatusUpdate[]> {
+): Promise<ParachainStatusUpdate[]> {
     try {
         const res = await pool.query(`
             SELECT

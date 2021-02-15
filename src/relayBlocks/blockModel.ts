@@ -1,4 +1,4 @@
-export interface Block {
+export interface BtcBlock {
     height: string;
     hash: string;
     relay_ts: string;

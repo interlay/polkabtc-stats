@@ -8,6 +8,7 @@ import {
 } from "./redeemDataService";
 import { Redeem } from "./redeemModel";
 import { SatoshisTimeData } from "../common/commonModels";
+import {BtcNetworkName} from "../common/util";
 
 @Tags("stats")
 @Route("redeems")
@@ -39,8 +40,9 @@ export class RedeemsController extends Controller {
         @Query() page = 0,
         @Query() perPage = 20,
         @Query() sortBy = "block_number",
-        @Query() sortAsc = false
+        @Query() sortAsc = false,
+        @Query() network: BtcNetworkName = "mainnet"
     ): Promise<Redeem[]> {
-        return getPagedRedeems(page, perPage, sortBy, sortAsc);
+        return getPagedRedeems(page, perPage, sortBy, sortAsc, network);
     }
 }

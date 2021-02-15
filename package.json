@@ -1,6 +1,6 @@
 {
     "name": "@interlay/polkabtc-stats",
-    "version": "0.0.16",
+    "version": "0.0.17",
     "license": "MIT",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
@@ -16,12 +16,13 @@
         "start": "node -r dotenv/config build/src/server.js"
     },
     "dependencies": {
-        "@interlay/polkabtc": "0.8.2",
+        "@interlay/polkabtc": "^0.8.5",
         "@interlay/polkabtc-types": "0.4.0",
         "@polkadot/api": "3.6.1",
         "@polkadot/rpc-core": "3.6.1",
         "@supercharge/promise-pool": "^1.6.0",
         "@types/pg-format": "^1.0.1",
+        "bitcoinjs-lib": "^5.2.0",
         "body-parser": "^1.19.0",
         "dotenv": "^8.2.0",
         "express": "^4.17.1",

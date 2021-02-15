@@ -1,4 +1,4 @@
-export interface StatusUpdate {
+export interface ParachainStatusUpdate {
     id: string;
     timestamp: string;
     proposedStatus: string;

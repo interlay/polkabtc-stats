@@ -1,5 +1,5 @@
 import format from "pg-format";
-import { Block } from "./blockModel";
+import { BtcBlock } from "./blockModel";
 import pool from "../common/pool";
 
 export async function getPagedBlocks(
@@ -7,7 +7,7 @@ export async function getPagedBlocks(
     perPage: number,
     sortBy = "height",
     sortAsc = false
-): Promise<Block[]> {
+): Promise<BtcBlock[]> {
     const res = await pool.query(
         `SELECT
             "event_data" ->> 0 AS height, "event_data" ->> 1 AS "hash", "block_ts" AS "relay_ts"

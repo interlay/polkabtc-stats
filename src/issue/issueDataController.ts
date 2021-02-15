@@ -7,6 +7,7 @@ import {
 } from "./issueDataService";
 import { Issue } from "./issueModels";
 import { SatoshisTimeData } from "../common/commonModels";
+import {BtcNetworkName} from "../common/util";
 
 @Tags("stats")
 @Route("issues")
@@ -33,8 +34,9 @@ export class IssuesController extends Controller {
         @Query() page = 0,
         @Query() perPage = 20,
         @Query() sortBy = "block_number",
-        @Query() sortAsc = false
+        @Query() sortAsc = false,
+        @Query() network = "mainnet" as BtcNetworkName,
     ): Promise<Issue[]> {
-        return getPagedIssues(page, perPage, sortBy, sortAsc);
+        return getPagedIssues(page, perPage, sortBy, sortAsc, network);
     }
 }

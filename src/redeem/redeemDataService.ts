@@ -3,7 +3,7 @@ import { Redeem } from "./redeemModel";
 import { SatoshisTimeData } from "../common/commonModels";
 
 import pool from "../common/pool";
-import { btcAddressToString, runPerDayQuery } from "../common/util";
+import { btcAddressToString, BtcNetworkName, runPerDayQuery } from "../common/util";
 
 export async function getTotalSuccessfulRedeems(): Promise<string> {
     try {
@@ -73,7 +73,8 @@ export async function getPagedRedeems(
     page: number,
     perPage: number,
     sortBy = "block_number",
-    sortAsc = false
+    sortAsc = false,
+    network: BtcNetworkName
 ): Promise<Redeem[]> {
     try {
         const res = await pool.query(
@@ -102,7 +103,7 @@ export async function getPagedRedeems(
             amountPolkaBTC: row.amount_polka_btc,
             creation: row.block_number,
             timestamp: row.block_ts,
-            btcAddress: btcAddressToString(row.btc_address),
+            btcAddress: btcAddressToString(row.btc_address, network),
             vaultDotAddress: row.vault_id,
             btcTxId: "",
             confirmations: 0,
