@@ -1,6 +1,7 @@
 import format from "pg-format";
 import { BtcBlock } from "./blockModel";
 import pool from "../common/pool";
+import {stripHexPrefix} from "@interlay/polkabtc";
 
 export type BlockColumn = "height" | "hash" | "relay_ts";
 
@@ -21,7 +22,7 @@ export async function getPagedBlocks(
     );
     return res.rows.map((row) => ({
         height: row.height,
-        hash: row.hash,
+        hash: stripHexPrefix(row.hash),
         relay_ts: row.relay_ts,
     }));
 }

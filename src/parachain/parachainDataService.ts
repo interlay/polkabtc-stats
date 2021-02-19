@@ -3,6 +3,7 @@ import { ParachainStatusUpdate } from "./parachainModels";
 
 import pool from "../common/pool";
 import { Filter, filtersToWhere } from "../common/util";
+import {stripHexPrefix} from "@interlay/polkabtc";
 
 export async function getTotalStatusUpdates(): Promise<string> {
     try {
@@ -110,7 +111,7 @@ export async function getPagedStatusUpdates(
             proposedStatus: row.new_status,
             addError: row.add_error,
             removeError: row.remove_error,
-            btc_block_hash: row.btc_block_hash,
+            btc_block_hash: stripHexPrefix(row.btc_block_hash),
             yeas: row.yeas,
             nays: row.nays,
             executed: row.executed ? true : false,

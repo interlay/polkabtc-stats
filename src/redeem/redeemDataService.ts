@@ -11,6 +11,7 @@ import {
     runPerDayQuery,
 } from "../common/util";
 import { getTxDetailsForRequest, RequestType } from "../common/btcTxUtils";
+import {planckToDOT, satToBTC, stripHexPrefix} from "@interlay/polkabtc";
 
 export async function getTotalSuccessfulRedeems(): Promise<string> {
     try {
@@ -140,11 +141,11 @@ export async function getPagedRedeems(
                     true
                 );
                 return {
-                    id: row.redeem_id,
+                    id: stripHexPrefix(row.redeem_id),
                     requester: row.requester,
-                    amountPolkaBTC: row.amount_polka_btc,
-                    feePolkabtc: row.fee_polkabtc,
-                    dotPremium: row.dot_premium,
+                    amountPolkaBTC: satToBTC(row.amount_polka_btc),
+                    feePolkabtc: satToBTC(row.fee_polkabtc),
+                    dotPremium: planckToDOT(row.dot_premium),
                     creation: row.block_number,
                     timestamp: row.block_ts,
                     btcAddress: userBtcAddress,
@@ -160,6 +161,7 @@ export async function getPagedRedeems(
             })
         );
     } catch (e) {
+        console.error("[REDEEM] getPagedRedeems: uncaught error");
         console.error(e);
         throw e;
     }

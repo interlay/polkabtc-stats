@@ -1,6 +1,7 @@
 import format from "pg-format";
 import { Issue } from "./issueModels";
 import { SatoshisTimeData } from "../common/commonModels";
+import { planckToDOT, satToBTC, stripHexPrefix } from "@interlay/polkabtc";
 
 import pool from "../common/pool";
 import {
@@ -121,12 +122,12 @@ export async function getPagedIssues(
                     vaultBTCAddress
                 );
                 return {
-                    id: row.issue_id,
-                    amountBTC: row.amount_btc,
+                    id: stripHexPrefix(row.issue_id),
+                    amountBTC: satToBTC(row.amount_btc),
                     requester: row.requester,
-                    feePolkabtc: row.fee_polkabtc,
-                    griefingCollateral: row.griefing_collateral,
-                    vaultWalletPubkey: row.vault_wallet_pubkey,
+                    feePolkabtc: satToBTC(row.fee_polkabtc),
+                    griefingCollateral: planckToDOT(row.griefing_collateral),
+                    vaultWalletPubkey: stripHexPrefix(row.vault_wallet_pubkey),
                     creation: row.block_number,
                     timestamp: row.block_ts,
                     vaultBTCAddress,
@@ -140,6 +141,7 @@ export async function getPagedIssues(
             })
         );
     } catch (e) {
+        console.error("[ISSUE] getPagedIssues: uncaught error");
         console.error(e);
         throw e;
     }

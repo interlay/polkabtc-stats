@@ -41,7 +41,6 @@ export async function getTxDetailsForRequest(
             request_type: requestType,
         })
     )[0];
-
     if (savedDetails === undefined) {
         // no details yet, fetch everything from esplora
         try {
@@ -70,15 +69,21 @@ export async function getTxDetailsForRequest(
             });
             return { txid, blockHeight, confirmations };
         } catch (e) {
+            console.log(`Failed to get BTC tx data for ${requestId}:`);
             console.log(e);
             return { txid: "", blockHeight: 0 };
         }
-    } else if (savedDetails.confirmations < stableConfs) {
+    } else if (
+        savedDetails.confirmations < stableConfs ||
+        savedDetails.block_height === 0
+    ) {
         // txid known, but tx not known to be confirmed, update confirmations
         try {
             const confirmations = (
                 await polkabtc.btcCore.getTransactionStatus(savedDetails.txid)
             ).confirmations;
+            const blockHeight =
+                (await polkabtc.btcCore.getTransactionBlockHeight(savedDetails.txid)) || 0;
 
             getRepository(RequestTxCache).save({
                 ...savedDetails,
@@ -87,11 +92,12 @@ export async function getTxDetailsForRequest(
             return {
                 txid: savedDetails.txid,
                 confirmations,
-                blockHeight: savedDetails.block_height,
+                blockHeight,
             };
         } catch (e) {
+            console.log(`Failed to get BTC confirmations for ${requestId}:`);
             console.log(e);
-            return { txid: "", blockHeight: 0 };
+            return { txid: savedDetails.txid, blockHeight: 0 };
         }
     } else {
         // tx known confirmed, pass block_height to let client display confirmations
