@@ -1,6 +1,6 @@
 import { Pool } from "pg";
-const enableSSL = process.env.PGSSLMODE && process.env.PGSSLMODE === "require";
+import { ENABLE_PG_SSL } from "./constants";
 const pool = new Pool(
-    enableSSL ? { ssl: { rejectUnauthorized: false } } : { ssl: false }
+    ENABLE_PG_SSL ? { ssl: { rejectUnauthorized: false } } : { ssl: false }
 );
 export default pool;

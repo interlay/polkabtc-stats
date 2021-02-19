@@ -1,5 +1,9 @@
 import { Controller, Get, Query, Route, Tags } from "tsoa";
-import { getPagedBlocks, totalRelayedBlocks } from "./blockService";
+import {
+    BlockColumn,
+    getPagedBlocks,
+    totalRelayedBlocks,
+} from "./blockService";
 import { BtcBlock } from "./blockModel";
 
 @Tags("stats")
@@ -9,15 +13,14 @@ export class CumulativeBlocksController extends Controller {
     public async getBlocks(
         @Query() page = 0,
         @Query() perPage = 20,
-        @Query() sortBy = "height",
+        @Query() sortBy: BlockColumn = "height",
         @Query() sortAsc = false
     ): Promise<BtcBlock[]> {
         return getPagedBlocks(page, perPage, sortBy, sortAsc);
     }
 
     @Get("count")
-    public async getTotalRelayedBlocksCount(
-    ): Promise<string> {
+    public async getTotalRelayedBlocksCount(): Promise<string> {
         return totalRelayedBlocks();
     }
 }

@@ -1,13 +1,14 @@
-import { Controller, Get, Query, Route, Tags } from "tsoa";
+import { Body, Controller, Get, Post, Query, Route, Tags } from "tsoa";
 import {
     getTotalSuccessfulIssues,
     getTotalIssues,
     getRecentDailyIssues,
     getPagedIssues,
+    IssueColumns,
 } from "./issueDataService";
 import { Issue } from "./issueModels";
 import { SatoshisTimeData } from "../common/commonModels";
-import {BtcNetworkName} from "../common/util";
+import {BtcNetworkName, Filter} from "../common/util";
 
 @Tags("stats")
 @Route("issues")
@@ -33,10 +34,22 @@ export class IssuesController extends Controller {
     public async getIssues(
         @Query() page = 0,
         @Query() perPage = 20,
-        @Query() sortBy = "block_number",
+        @Query() sortBy: IssueColumns = "block_number",
         @Query() sortAsc = false,
         @Query() network = "mainnet" as BtcNetworkName,
     ): Promise<Issue[]> {
-        return getPagedIssues(page, perPage, sortBy, sortAsc, network);
+        return getPagedIssues(page, perPage, sortBy, sortAsc, [], network);
+    }
+
+    @Post("")
+    public async getFilteredIssues(
+        @Query() page = 0,
+        @Query() perPage = 20,
+        @Query() sortBy: IssueColumns = "block_number",
+        @Query() sortAsc = false,
+        @Body() filters: Filter<IssueColumns>[] = [],
+        @Query() network = "mainnet" as BtcNetworkName,
+    ): Promise<Issue[]> {
+        return getPagedIssues(page, perPage, sortBy, sortAsc, filters, network);
     }
 }

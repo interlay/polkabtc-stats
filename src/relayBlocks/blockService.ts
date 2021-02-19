@@ -2,11 +2,13 @@ import format from "pg-format";
 import { BtcBlock } from "./blockModel";
 import pool from "../common/pool";
 
+export type BlockColumn = "height" | "hash" | "relay_ts";
+
 export async function getPagedBlocks(
     page: number,
     perPage: number,
-    sortBy = "height",
-    sortAsc = false
+    sortBy: BlockColumn,
+    sortAsc: boolean,
 ): Promise<BtcBlock[]> {
     const res = await pool.query(
         `SELECT

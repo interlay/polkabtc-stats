@@ -3,7 +3,14 @@ import { Redeem } from "./redeemModel";
 import { SatoshisTimeData } from "../common/commonModels";
 
 import pool from "../common/pool";
-import { btcAddressToString, BtcNetworkName, runPerDayQuery } from "../common/util";
+import {
+    btcAddressToString,
+    BtcNetworkName,
+    Filter,
+    filtersToWhere,
+    runPerDayQuery,
+} from "../common/util";
+import { getTxDetailsForRequest, RequestType } from "../common/btcTxUtils";
 
 export async function getTotalSuccessfulRedeems(): Promise<string> {
     try {
@@ -69,17 +76,33 @@ export async function getRecentDailyRedeems(
     }
 }
 
+export type RedeemColumns =
+    | "redeem_id"
+    | "requester"
+    | "amount_polka_btc"
+    | "fee_polkabtc"
+    | "dot_premium"
+    | "block_number"
+    | "block_ts"
+    | "reimbursed"
+    | "vault_id"
+    | "btc_address"
+    | "cancelled"
+    | "executed";
+
 export async function getPagedRedeems(
     page: number,
     perPage: number,
-    sortBy = "block_number",
-    sortAsc = false,
+    sortBy: RedeemColumns,
+    sortAsc: boolean,
+    filters: Filter<RedeemColumns>[],
     network: BtcNetworkName
 ): Promise<Redeem[]> {
     try {
         const res = await pool.query(
-            `SELECT
-                req.redeem_id, req.amount_polka_btc, req.block_number, req.block_ts, cl.reimbursed, req.vault_id, req.btc_address, cl.cancelled, ex.executed
+            `
+            SELECT
+                req.redeem_id, req.requester, req.amount_polka_btc, req.fee_polkabtc, req.dot_premium, req.block_number, req.block_ts, cl.reimbursed, req.vault_id, req.btc_address, cl.cancelled, ex.executed
             FROM
                 "v_parachain_redeem_request" as req
                 LEFT OUTER JOIN
@@ -92,26 +115,50 @@ export async function getPagedRedeems(
                         redeem_id, true AS executed
                     FROM "v_parachain_redeem_execute")
                 AS ex USING (redeem_id)
+            ${filtersToWhere(filters)}
             ORDER BY ${format.ident(sortBy)} ${
                 sortAsc ? "ASC" : "DESC"
             }, redeem_id ASC
-            LIMIT $1 OFFSET $2`,
+            LIMIT $1 OFFSET $2
+            `,
             [perPage, page * perPage]
         );
-        return res.rows.map((row) => ({
-            id: row.redeem_id,
-            amountPolkaBTC: row.amount_polka_btc,
-            creation: row.block_number,
-            timestamp: row.block_ts,
-            btcAddress: btcAddressToString(row.btc_address, network),
-            vaultDotAddress: row.vault_id,
-            btcTxId: "",
-            confirmations: 0,
-            completed: row.executed ? true : false,
-            cancelled: row.cancelled ? true : false,
-            reimbursed: row.reimbursed? true : false,
-            isExpired: false,
-        }));
+        return Promise.all(
+            res.rows.map(async (row) => {
+                const userBtcAddress = btcAddressToString(
+                    row.btc_address,
+                    network
+                );
+                const {
+                    txid,
+                    confirmations,
+                    blockHeight,
+                } = await getTxDetailsForRequest(
+                    row.redeem_id,
+                    RequestType.Redeem,
+                    userBtcAddress,
+                    true
+                );
+                return {
+                    id: row.redeem_id,
+                    requester: row.requester,
+                    amountPolkaBTC: row.amount_polka_btc,
+                    feePolkabtc: row.fee_polkabtc,
+                    dotPremium: row.dot_premium,
+                    creation: row.block_number,
+                    timestamp: row.block_ts,
+                    btcAddress: userBtcAddress,
+                    vaultDotAddress: row.vault_id,
+                    btcTxId: txid,
+                    confirmations,
+                    btcBlockHeight: blockHeight,
+                    completed: row.executed ? true : false,
+                    cancelled: row.cancelled ? true : false,
+                    reimbursed: row.reimbursed ? true : false,
+                    isExpired: false,
+                };
+            })
+        );
     } catch (e) {
         console.error(e);
         throw e;

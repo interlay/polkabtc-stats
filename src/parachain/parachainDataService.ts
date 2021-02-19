@@ -2,6 +2,7 @@ import format from "pg-format";
 import { ParachainStatusUpdate } from "./parachainModels";
 
 import pool from "../common/pool";
+import { Filter, filtersToWhere } from "../common/util";
 
 export async function getTotalStatusUpdates(): Promise<string> {
     try {
@@ -19,14 +20,30 @@ export async function getTotalStatusUpdates(): Promise<string> {
     }
 }
 
+export type StatusUpdateColumns =
+    | "update_id"
+    | "block_ts"
+    | "block_number"
+    | "new_status"
+    | "add_error"
+    | "remove_error"
+    | "btc_block_hash"
+    | "yeas"
+    | "nays"
+    | "executed"
+    | "rejected"
+    | "forced";
+
 export async function getPagedStatusUpdates(
     page: number,
     perPage: number,
-    sortBy = "block_number",
-    sortAsc = false
+    sortBy: StatusUpdateColumns,
+    sortAsc: boolean,
+    filters: Filter<StatusUpdateColumns>[]
 ): Promise<ParachainStatusUpdate[]> {
     try {
-        const res = await pool.query(`
+        const res = await pool.query(
+            `
             SELECT
                 suggest.update_id,
                 suggest.block_ts,
@@ -41,29 +58,29 @@ export async function getPagedStatusUpdates(
                 coalesce(rej.rejected, FALSE) AS rejected,
                 FALSE AS forced
             FROM
-                 "v_parachain_status_suggest" AS suggest
-                 LEFT OUTER JOIN
-                     (SELECT
-                         update_id, TRUE AS executed
-                     FROM "v_parachain_status_execute")
-                 AS exec USING (update_id)
-                 LEFT OUTER JOIN
-                     (SELECT
-                         update_id, TRUE AS rejected
-                     FROM "v_parachain_status_reject")
-                 AS rej USING (update_id)
-                 LEFT OUTER JOIN
-                     (SELECT
-                           update_id, COUNT(*)
-                       FROM v_parachain_status_vote
-                       WHERE approve = 'true' GROUP BY update_id)
-                 AS yeas USING (update_id)
-                 LEFT OUTER JOIN
-                      (SELECT
-                            update_id, COUNT(*)
-                        FROM v_parachain_status_vote
-                        WHERE approve = 'false' GROUP BY update_id)
-                  AS nays USING (update_id)
+                "v_parachain_status_suggest" AS suggest
+                LEFT OUTER JOIN
+                    (SELECT
+                        update_id, TRUE AS executed
+                    FROM "v_parachain_status_execute")
+                AS exec USING (update_id)
+                LEFT OUTER JOIN
+                    (SELECT
+                        update_id, TRUE AS rejected
+                    FROM "v_parachain_status_reject")
+                AS rej USING (update_id)
+                LEFT OUTER JOIN
+                    (SELECT
+                        update_id, COUNT(*)
+                    FROM v_parachain_status_vote
+                    WHERE approve = 'true' GROUP BY update_id)
+                AS yeas USING (update_id)
+                LEFT OUTER JOIN
+                    (SELECT
+                        update_id, COUNT(*)
+                    FROM v_parachain_status_vote
+                    WHERE approve = 'false' GROUP BY update_id)
+                AS nays USING (update_id)
             UNION ALL
             SELECT
                 NULL AS update_id,
@@ -79,10 +96,11 @@ export async function getPagedStatusUpdates(
                 FALSE AS rejected,
                 TRUE AS forced
             FROM v_parachain_status_force AS force
-        ORDER BY ${format.ident(sortBy)} ${
-            sortAsc ? "ASC" : "DESC"
-        }, update_id ASC
-        LIMIT $1 OFFSET $2
+            ${filtersToWhere(filters)}
+            ORDER BY ${format.ident(sortBy)} ${
+                sortAsc ? "ASC" : "DESC"
+            }, update_id ASC
+            LIMIT $1 OFFSET $2
             `,
             [perPage, page * perPage]
         );

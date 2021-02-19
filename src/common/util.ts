@@ -3,8 +3,27 @@ import { TimeDataPoint } from "./commonModels";
 import { payments, networks } from "bitcoinjs-lib";
 
 export const msInDay = 86400 * 1000;
+export const MAX_CONF =
+    (process.env.MAX_BTC_CONFIRMATIONS &&
+        parseInt(process.env.MAX_BTC_CONFIRMATIONS)) ||
+    6;
 
 export type BtcNetworkName = "mainnet" | "testnet" | "regtest";
+
+export type Filter<Columns> = {
+    column: Columns;
+    value: string;
+};
+
+export function filtersToWhere<Columns>(filters: Filter<Columns>[]) {
+    if (filters.length === 0) return "";
+    return filters
+        .reduce(
+            (cond, filter) => cond + `${filter.column} = '${filter.value}' AND `,
+            "WHERE "
+        )
+        .slice(0, -5);
+}
 
 export function dateToMidnight(timestamp: number): number {
     const date = new Date(timestamp);

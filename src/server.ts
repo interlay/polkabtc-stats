@@ -1,22 +1,19 @@
 // Must be at top
-import 'reflect-metadata';
+import "reflect-metadata";
 
 import { app } from "./app";
 import monitor from "./monitor";
-
-const PORT = process.env.PORT || 3007;
-const MONITOR = process.env.MONITOR ? true : false;
-const ENDPOINT_URL = process.env.ENDPOINT_URL || 'ws://localhost:9944';
+import { PORT, MONITOR } from "./common/constants";
 
 app.listen(PORT, () =>
-  console.log(`polkabtc-stats listening at http://localhost:${PORT}`)
+    console.log(`polkabtc-stats listening at http://localhost:${PORT}`)
 );
 
 if (MONITOR) {
-  // process historical and incoming blocks and
-  // propogate to the postgres database
-  monitor(ENDPOINT_URL).catch((error) => {
-    console.error(error);
-    process.exit(-1);
-  });
+    // process historical and incoming blocks and
+    // propogate to the postgres database
+    monitor().catch((error) => {
+        console.error(error);
+        process.exit(-1);
+    });
 }

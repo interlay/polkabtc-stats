@@ -3,7 +3,14 @@ import { Issue } from "./issueModels";
 import { SatoshisTimeData } from "../common/commonModels";
 
 import pool from "../common/pool";
-import { btcAddressToString, BtcNetworkName, runPerDayQuery } from "../common/util";
+import {
+    btcAddressToString,
+    BtcNetworkName,
+    Filter,
+    filtersToWhere,
+    runPerDayQuery,
+} from "../common/util";
+import { getTxDetailsForRequest, RequestType } from "../common/btcTxUtils";
 
 export async function getTotalSuccessfulIssues(): Promise<string> {
     try {
@@ -53,17 +60,32 @@ export async function getRecentDailyIssues(
     }
 }
 
+export type IssueColumns =
+    | "issue_id"
+    | "amount_btc"
+    | "requester"
+    | "fee_polkabtc"
+    | "griefing_collateral"
+    | "vault_wallet_pubkey"
+    | "block_number"
+    | "block_ts"
+    | "vault_id"
+    | "btc_address"
+    | "cancelled"
+    | "executed";
+
 export async function getPagedIssues(
     page: number,
     perPage: number,
-    sortBy = "block_number",
-    sortAsc = false,
-    network: BtcNetworkName,
+    sortBy: IssueColumns,
+    sortAsc: boolean,
+    filters: Filter<IssueColumns>[],
+    network: BtcNetworkName
 ): Promise<Issue[]> {
     try {
         const res = await pool.query(
             `SELECT
-                req.issue_id, req.amount_btc, req.block_number, req.block_ts, req.vault_id, req.btc_address, cl.cancelled, ex.executed
+                req.issue_id, req.requester, req.fee_polkabtc, req.griefing_collateral, req.vault_wallet_pubkey, req.amount_btc, req.block_number, req.block_ts, req.vault_id, req.btc_address, cl.cancelled, ex.executed
             FROM
                 "v_parachain_data_request_issue" as req
                 LEFT OUTER JOIN
@@ -76,24 +98,47 @@ export async function getPagedIssues(
                         issue_id, true AS executed
                     FROM "v_parachain_data_execute_issue")
                 AS ex USING (issue_id)
+            ${filtersToWhere(filters)}
             ORDER BY ${format.ident(sortBy)} ${
                 sortAsc ? "ASC" : "DESC"
             }, issue_id ASC
             LIMIT $1 OFFSET $2`,
             [perPage, page * perPage]
         );
-        return res.rows.map((row) => ({
-            id: row.issue_id,
-            amountBTC: row.amount_btc,
-            creation: row.block_number,
-            timestamp: row.block_ts,
-            vaultBTCAddress: btcAddressToString(row.btc_address, network),
-            vaultDOTAddress: row.vault_id,
-            btcTxId: "",
-            confirmations: 0,
-            completed: row.executed ? true : false,
-            cancelled: row.cancelled ? true : false,
-        }));
+        return Promise.all(
+            res.rows.map(async (row) => {
+                const vaultBTCAddress = btcAddressToString(
+                    row.btc_address,
+                    network
+                );
+                const {
+                    txid,
+                    confirmations,
+                    blockHeight,
+                } = await getTxDetailsForRequest(
+                    row.issue_id,
+                    RequestType.Issue,
+                    vaultBTCAddress
+                );
+                return {
+                    id: row.issue_id,
+                    amountBTC: row.amount_btc,
+                    requester: row.requester,
+                    feePolkabtc: row.fee_polkabtc,
+                    griefingCollateral: row.griefing_collateral,
+                    vaultWalletPubkey: row.vault_wallet_pubkey,
+                    creation: row.block_number,
+                    timestamp: row.block_ts,
+                    vaultBTCAddress,
+                    vaultDOTAddress: row.vault_id,
+                    btcTxId: txid,
+                    confirmations,
+                    btcBlockHeight: blockHeight,
+                    completed: row.executed ? true : false,
+                    cancelled: row.cancelled ? true : false,
+                };
+            })
+        );
     } catch (e) {
         console.error(e);
         throw e;
