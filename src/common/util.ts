@@ -1,6 +1,8 @@
 import pool from "./pool";
 import { TimeDataPoint } from "./commonModels";
 import { payments, networks } from "bitcoinjs-lib";
+import format from "pg-format";
+import {Colmuns} from "./columnTypes";
 
 export const msInDay = 86400 * 1000;
 export const MAX_CONF =
@@ -10,16 +12,16 @@ export const MAX_CONF =
 
 export type BtcNetworkName = "mainnet" | "testnet" | "regtest";
 
-export type Filter<Columns> = {
-    column: Columns;
+export type Filter<C extends Colmuns> = {
+    column: C;
     value: string;
 };
 
-export function filtersToWhere<Columns>(filters: Filter<Columns>[]) {
+export function filtersToWhere<C extends Colmuns>(filters: Filter<C>[]) {
     if (filters.length === 0) return "";
     return filters
         .reduce(
-            (cond, filter) => cond + `${filter.column} = '${filter.value}' AND `,
+            (cond, filter) => cond + `${format.ident(filter.column)} = '${format.literal(filter.value)}' AND `,
             "WHERE "
         )
         .slice(0, -5);

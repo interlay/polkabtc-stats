@@ -12,6 +12,7 @@ import {
     runPerDayQuery,
 } from "../common/util";
 import { getTxDetailsForRequest, RequestType } from "../common/btcTxUtils";
+import {IssueColumns} from "../common/columnTypes";
 
 export async function getTotalSuccessfulIssues(): Promise<string> {
     try {
@@ -61,20 +62,6 @@ export async function getRecentDailyIssues(
     }
 }
 
-export type IssueColumns =
-    | "issue_id"
-    | "amount_btc"
-    | "requester"
-    | "fee_polkabtc"
-    | "griefing_collateral"
-    | "vault_wallet_pubkey"
-    | "block_number"
-    | "block_ts"
-    | "vault_id"
-    | "btc_address"
-    | "cancelled"
-    | "executed";
-
 export async function getPagedIssues(
     page: number,
     perPage: number,
@@ -99,7 +86,7 @@ export async function getPagedIssues(
                         issue_id, true AS executed
                     FROM "v_parachain_data_execute_issue")
                 AS ex USING (issue_id)
-            ${filtersToWhere(filters)}
+            ${filtersToWhere<IssueColumns>(filters)}
             ORDER BY ${format.ident(sortBy)} ${
                 sortAsc ? "ASC" : "DESC"
             }, issue_id ASC
