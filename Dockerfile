@@ -6,6 +6,6 @@ COPY . /usr/src
 
 RUN set -ex; \
     yarn install --frozen-lockfile; \
-    yarn cache clean; \
-    yarn run build
+    yarn build
 
+CMD node -r dotenv/config build/src/server.js

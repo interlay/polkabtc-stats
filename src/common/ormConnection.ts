@@ -38,6 +38,8 @@ export const getTypeORMConnection: () => Promise<Connection> = async () => {
             password: process.env.PGPASSWORD,
             database: process.env.PGDATABASE,
             synchronize: true,
+            ssl: true,
+            extra: { ssl: { rejectUnauthorized: false } },
             logging: false,
             entities: [
                 ParachainEvents,
