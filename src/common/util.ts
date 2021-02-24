@@ -21,7 +21,7 @@ export function filtersToWhere<C extends Colmuns>(filters: Filter<C>[]) {
     if (filters.length === 0) return "";
     return filters
         .reduce(
-            (cond, filter) => cond + `${format.ident(filter.column)} = '${format.literal(filter.value)}' AND `,
+            (cond, filter) => cond + `${format.ident(filter.column)} = ${format.literal(filter.value)} AND `,
             "WHERE "
         )
         .slice(0, -5);
