@@ -2,8 +2,9 @@ import { Controller, Get, Query, Route, Tags } from "tsoa";
 import {
     getRecentDailyVaults,
     getRecentDailyCollateral,
+    getAllVaults,
 } from "./vaultDataService";
-import { VaultCountTimeData, CollateralTimeData } from "./vaultModels";
+import { VaultData, VaultCountTimeData, CollateralTimeData } from "./vaultModels";
 
 @Tags("stats")
 @Route("vaults")
@@ -20,5 +21,10 @@ export class VaultsController extends Controller {
         @Query() daysBack = 5
     ): Promise<CollateralTimeData[]> {
         return getRecentDailyCollateral(daysBack);
+    }
+
+    @Get("")
+    public async getVaults(): Promise<VaultData[]> {
+        return getAllVaults();
     }
 }

@@ -3,7 +3,7 @@ export interface RelayerCountTimeData {
     count: number;
 }
 
-export interface Relayer {
+export interface RelayerData {
     id: string;
     stake: string;
     bonded: boolean;

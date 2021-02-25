@@ -13,6 +13,7 @@ import { VParachainExecutedIssues } from "../models/VParachainExecutedIssues";
 import { VParachainVaultIssueRedeem } from "../models/VParachainVaultIssueRedeem";
 import { VParachainVaultRegistration } from "../models/VParachainVaultRegistration";
 import { VParachainVaultSummary } from "../models/VParachainVaultSummary";
+import { VParachainVaultCollateral } from "../models/VParachainVaultCollateral";
 import { VParachainRedeemCancel } from "../models/VParachainRedeemCancel";
 import { VParachainRedeemExecute } from "../models/VParachainRedeemExecute";
 import { VParachainRedeemRequest } from "../models/VParachainRedeemRequest";
@@ -53,6 +54,7 @@ export const getTypeORMConnection: () => Promise<Connection> = async () => {
                 VParachainVaultIssueRedeem,
                 VParachainVaultRegistration,
                 VParachainVaultSummary,
+                VParachainVaultCollateral,
                 VParachainStakedrelayerDeregister,
                 VParachainStakedrelayerRegister,
                 VParachainStakedrelayerSlash,

@@ -7,3 +7,8 @@ export interface VaultCountTimeData {
     date: number;
     count: number;
 }
+
+export interface VaultData {
+    id: string;
+    collateral: string;
+}

@@ -1,7 +1,7 @@
-import { Relayer, RelayerCountTimeData} from "./relayersModel";
+import { RelayerData, RelayerCountTimeData } from "./relayersModel";
 import { runPerDayQuery } from "../common/util";
 import pool from "../common/pool";
-import {planckToDOT} from "@interlay/polkabtc";
+import { planckToDOT } from "@interlay/polkabtc";
 
 export async function getRecentDailyRelayers(
     daysBack: number
@@ -11,7 +11,7 @@ export async function getRecentDailyRelayers(
             await runPerDayQuery(
                 daysBack,
                 (i, ts) =>
-                `
+                    `
                 SELECT
                     ${i} AS idx,
                     GREATEST(reg - dereg, 0) AS value
@@ -45,7 +45,7 @@ export async function getRecentDailyRelayers(
     }
 }
 
-export async function getAllRelayers(): Promise<Relayer[]> {
+export async function getAllRelayers(): Promise<RelayerData[]> {
     try {
         const res = await pool.query(`
             SELECT DISTINCT ON (reg.relayer_id)
