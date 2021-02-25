@@ -1,5 +1,7 @@
-import { CollateralTimeData, VaultCountTimeData } from "./vaultModels";
+import { VaultData, CollateralTimeData, VaultCountTimeData } from "./vaultModels";
 import { runPerDayQuery } from "../common/util";
+import pool from "../common/pool";
+import { planckToDOT } from "@interlay/polkabtc";
 
 export async function getRecentDailyVaults(
     daysBack: number
@@ -45,6 +47,32 @@ export async function getRecentDailyCollateral(
                     WHERE block_ts < '${ts}'`
             )
         ).map((row) => ({ date: row.date, amount: row.value }));
+    } catch (e) {
+        console.error(e);
+        throw e;
+    }
+}
+
+export async function getAllVaults(): Promise<VaultData[]> {
+    try {
+        const res = await pool.query(`
+            SELECT DISTINCT ON (reg.vault_id)
+                reg.vault_id,
+                reg.block_number,
+                reg.collateral
+            FROM (
+                SELECT vault_id, collateral, block_number
+                FROM v_parachain_vault_registration
+                UNION
+                SELECT vault_id, total_collateral, block_number
+                FROM v_parachain_vault_collateral
+            ) reg 
+            ORDER BY reg.vault_id, reg.block_number DESC
+        `);
+        return res.rows.map((row) => ({
+            id: row.vault_id,
+            collateral: planckToDOT(row.collateral),
+        }));
     } catch (e) {
         console.error(e);
         throw e;
