@@ -14,7 +14,6 @@ import {
     VParachainVaultCollateral,
     VParachainVaultIssueRedeem,
     VParachainVaultRegistration,
-    VParachainVaultSummary,
     VParachainRedeemCancel,
     VParachainRedeemExecute,
     VParachainRedeemRequest,
@@ -29,6 +28,8 @@ import {
     VParachainRefundRequest,
     VParachainRefundExecute,
     RequestTxCache,
+    VParachainVaultSlaUpdate,
+    VParachainStakedrelayerSlaUpdate,
 } from "../models/";
 
 let conn: Connection | Promise<Connection> | undefined;
@@ -56,12 +57,13 @@ export const getTypeORMConnection: () => Promise<Connection> = async () => {
                 VParachainDataExecuteIssue,
                 VParachainExecutedIssues,
                 VParachainVaultIssueRedeem,
-                VParachainVaultRegistration,
-                VParachainVaultSummary,
+                VParachainVaultSlaUpdate,
                 VParachainVaultCollateral,
+                VParachainVaultRegistration,
                 VParachainStakedrelayerDeregister,
                 VParachainStakedrelayerRegister,
                 VParachainStakedrelayerSlash,
+                VParachainStakedrelayerSlaUpdate,
                 VParachainRedeemRequest,
                 VParachainRedeemExecute,
                 VParachainRedeemCancel,

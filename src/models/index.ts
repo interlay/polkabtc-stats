@@ -25,4 +25,6 @@ export { VParachainStatusExecute } from "./VParachainStatusExecute";
 export { VParachainStakedrelayerSlash } from "./VParachainStakedrelayerSlash";
 export { VParachainRefundRequest } from "./VParachainRefundRequest";
 export { VParachainRefundExecute } from "./VParachainRefundExecute";
+export { VParachainVaultSlaUpdate } from "./VParachainVaultSlaUpdate";
+export { VParachainStakedrelayerSlaUpdate } from "./VParachainStakedrelayerSlaUpdate";
 export { RequestTxCache } from "./RequestTxCache";

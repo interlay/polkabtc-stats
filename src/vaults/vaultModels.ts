@@ -17,3 +17,9 @@ export interface VaultData {
     execute_redeem_count: number;
     cancel_redeem_count: number;
 }
+
+export interface VaultSlaRanking {
+    id: string;
+    threshold: number;
+    duration: number;
+}
