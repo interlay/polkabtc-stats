@@ -127,13 +127,6 @@ export async function getPagedRedeems(
                     userBtcAddress,
                     true
                 );
-                console.log(row);
-                console.log(typeof row.cancelled);
-                console.log(row.cancelled);
-                console.log(typeof row.reimbursed);
-                console.log(row.reimbursed);
-                console.log(typeof row.executed);
-                console.log(row.executed);
                 return {
                     id: stripHexPrefix(row.redeem_id),
                     requester: row.requester,

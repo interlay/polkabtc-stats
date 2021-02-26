@@ -12,3 +12,9 @@ export interface VaultData {
     id: string;
     collateral: string;
 }
+
+export interface VaultSlaRanking {
+    id: string;
+    threshold: number;
+    duration: number;
+}

@@ -1,5 +1,9 @@
-import { RelayerData, RelayerCountTimeData } from "./relayersModel";
-import { runPerDayQuery } from "../common/util";
+import {
+    RelayerData,
+    RelayerCountTimeData,
+    RelayerSlaRanking,
+} from "./relayersModel";
+import { getDurationAboveMinSla, runPerDayQuery } from "../common/util";
 import pool from "../common/pool";
 import { planckToDOT } from "@interlay/polkabtc";
 
@@ -45,6 +49,30 @@ export async function getRecentDailyRelayers(
     }
 }
 
+export async function getRelayersWithTrackRecord(
+    minSla: number,
+    consecutiveTimespan: number
+): Promise<RelayerSlaRanking[]> {
+    try {
+        const res = await pool.query(`
+            SELECT
+                relayer_id,
+                json_agg(row(new_sla, block_ts)) as sla_changes
+            FROM v_parachain_stakedrelayer_sla_update
+            GROUP BY vault_id
+            `);
+        const reducedRows: RelayerSlaRanking[] = res.rows.map((row) => ({
+            id: row.relayer_id,
+            duration: getDurationAboveMinSla(minSla, row.sla_changes),
+            threshold: minSla,
+        }));
+        return reducedRows.filter((row) => row.duration >= consecutiveTimespan);
+    } catch (e) {
+        console.error(e);
+        throw e;
+    }
+}
+
 export async function getAllRelayers(): Promise<RelayerData[]> {
     try {
         const res = await pool.query(`
@@ -76,12 +104,14 @@ export async function getAllRelayers(): Promise<RelayerData[]> {
                 ON TRUE
                 ORDER BY reg.relayer_id, reg.block_number DESC
             `);
-        return res.rows.filter((row) => !row.deregistered).map((row) => ({
-            id: row.relayer_id,
-            stake: planckToDOT(row.stake),
-            bonded: row.bonded,
-            slashed: row.slashed,
-        }));
+        return res.rows
+            .filter((row) => !row.deregistered)
+            .map((row) => ({
+                id: row.relayer_id,
+                stake: planckToDOT(row.stake),
+                bonded: row.bonded,
+                slashed: row.slashed,
+            }));
     } catch (e) {
         console.error(e);
         throw e;

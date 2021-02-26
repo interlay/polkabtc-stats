@@ -1,5 +1,10 @@
-import { VaultData, CollateralTimeData, VaultCountTimeData } from "./vaultModels";
-import { runPerDayQuery } from "../common/util";
+import {
+    VaultData,
+    CollateralTimeData,
+    VaultCountTimeData,
+    VaultSlaRanking,
+} from "./vaultModels";
+import { getDurationAboveMinSla, runPerDayQuery } from "../common/util";
 import pool from "../common/pool";
 import { planckToDOT } from "@interlay/polkabtc";
 
@@ -19,6 +24,30 @@ export async function getRecentDailyVaults(
                 WHERE block_ts < '${ts}'`
             )
         ).map((row) => ({ date: row.date, count: row.value }));
+    } catch (e) {
+        console.error(e);
+        throw e;
+    }
+}
+
+export async function getVaultsWithTrackRecord(
+    minSla: number,
+    consecutiveTimespan: number
+): Promise<VaultSlaRanking[]> {
+    try {
+        const res = await pool.query(`
+            SELECT
+                vault_id,
+                json_agg(row(new_sla, block_ts)) as sla_changes
+            FROM v_parachain_vault_sla_update
+            GROUP BY vault_id
+            `);
+        const reducedRows: VaultSlaRanking[] = res.rows.map((row) => ({
+            id: row.vault_id,
+            duration: getDurationAboveMinSla(minSla, row.sla_changes),
+            threshold: minSla,
+        }));
+        return reducedRows.filter((row) => row.duration >= consecutiveTimespan);
     } catch (e) {
         console.error(e);
         throw e;

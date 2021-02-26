@@ -9,3 +9,9 @@ export interface RelayerData {
     bonded: boolean;
     slashed: boolean;
 }
+
+export interface RelayerSlaRanking {
+    id: string;
+    threshold: number;
+    duration: number;
+}
