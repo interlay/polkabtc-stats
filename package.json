@@ -1,7 +1,7 @@
 {
     "name": "@interlay/polkabtc-stats",
-    "version": "0.1.6",
-    "license": "MIT",
+    "version": "0.1.8",
+    "license": "Apache-2.0",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
     "files": [

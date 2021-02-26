@@ -1,32 +1,36 @@
 import { Connection, createConnection } from "typeorm";
 
-import { ParachainEvents } from "../models/ParachainEvents";
-import { VParachainData } from "../models/VParachainData";
-import { VParachainDataCancelIssue } from "../models/VParachainDataCancelIssue";
-import { VParachainDataRequestIssue } from "../models/VParachainDataRequestIssue";
-import { VParachainCanceledIssues } from "../models/VParachainCanceledIssues";
-import { VParachainCollateralLock } from "../models/VParachainCollateralLock";
-import { VParachainCollateralRelease } from "../models/VParachainCollateralRelease";
-import { VParachainCollateralSlash } from "../models/VParachainCollateralSlash";
-import { VParachainDataExecuteIssue } from "../models/VParachainDataExecuteIssue";
-import { VParachainExecutedIssues } from "../models/VParachainExecutedIssues";
-import { VParachainVaultIssueRedeem } from "../models/VParachainVaultIssueRedeem";
-import { VParachainVaultRegistration } from "../models/VParachainVaultRegistration";
-import { VParachainVaultCollateral } from "../models/VParachainVaultCollateral";
-import { VParachainRedeemCancel } from "../models/VParachainRedeemCancel";
-import { VParachainRedeemExecute } from "../models/VParachainRedeemExecute";
-import { VParachainRedeemRequest } from "../models/VParachainRedeemRequest";
-import { VParachainStakedrelayerRegister } from "../models/VParachainStakedrelayerRegister";
-import { VParachainStakedrelayerDeregister } from "../models/VParachainStakedrelayerDeregister";
-import { VParachainStatusSuggest } from "../models/VParachainStatusSuggest";
-import { VParachainStatusVote } from "../models/VParachainStatusVote";
-import { VParachainStatusReject } from "../models/VParachainStatusReject";
-import { VParachainStatusForce } from "../models/VParachainStatusForce";
-import { VParachainStatusExecute } from "../models/VParachainStatusExecute";
-import { VParachainStakedrelayerSlash } from "../models/VParachainStakedrelayerSlash";
-import { RequestTxCache } from "../models/RequestTxCache";
-import {VParachainVaultSlaUpdate} from "../models/VParachainVaultSlaUpdate";
-import {VParachainStakedrelayerSlaUpdate} from "../models/VParachainStakedrelayerSlaUpdate";
+import {
+    ParachainEvents,
+    VParachainData,
+    VParachainDataCancelIssue,
+    VParachainDataRequestIssue,
+    VParachainCanceledIssues,
+    VParachainCollateralLock,
+    VParachainCollateralRelease,
+    VParachainCollateralSlash,
+    VParachainDataExecuteIssue,
+    VParachainExecutedIssues,
+    VParachainVaultCollateral,
+    VParachainVaultIssueRedeem,
+    VParachainVaultRegistration,
+    VParachainRedeemCancel,
+    VParachainRedeemExecute,
+    VParachainRedeemRequest,
+    VParachainStakedrelayerRegister,
+    VParachainStakedrelayerDeregister,
+    VParachainStatusSuggest,
+    VParachainStatusVote,
+    VParachainStatusReject,
+    VParachainStatusForce,
+    VParachainStatusExecute,
+    VParachainStakedrelayerSlash,
+    VParachainRefundRequest,
+    VParachainRefundExecute,
+    RequestTxCache,
+    VParachainVaultSlaUpdate,
+    VParachainStakedrelayerSlaUpdate,
+} from "../models/";
 
 let conn: Connection | Promise<Connection> | undefined;
 
@@ -68,9 +72,11 @@ export const getTypeORMConnection: () => Promise<Connection> = async () => {
                 VParachainStatusExecute,
                 VParachainStatusReject,
                 VParachainStatusForce,
+                VParachainRefundRequest,
+                VParachainRefundExecute,
                 RequestTxCache,
             ],
         });
     }
     return conn;
-}
+};
