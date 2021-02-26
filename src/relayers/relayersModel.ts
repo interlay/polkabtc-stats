@@ -8,6 +8,7 @@ export interface RelayerData {
     stake: string;
     bonded: boolean;
     slashed: boolean;
+    block_count: number;
 }
 
 export interface RelayerSlaRanking {

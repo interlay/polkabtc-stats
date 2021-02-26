@@ -81,26 +81,40 @@ export async function getAllRelayers(): Promise<RelayerData[]> {
                 reg.stake,
                 COALESCE(deregistered, FALSE) deregistered,
                 COALESCE(slashed, FALSE) slashed,
-                maturity::Integer < latestblock.block_number bonded
+                maturity::Integer < latestblock.block_number bonded,
+                COALESCE(store.count, 0) AS block_count
             FROM
                 v_parachain_stakedrelayer_register reg
                 LEFT OUTER JOIN
-                    (SELECT DISTINCT ON (relayer_id)
+                    (
+                        SELECT DISTINCT ON (relayer_id)
                         relayer_id, block_number, TRUE deregistered
-                    FROM v_parachain_stakedrelayer_deregister
-                    ORDER BY relayer_id, block_number DESC) dereg
+                        FROM v_parachain_stakedrelayer_deregister
+                        ORDER BY relayer_id, block_number DESC
+                    ) dereg
                 ON reg.relayer_id = dereg.relayer_id AND reg.block_number < dereg.block_number
                 LEFT OUTER JOIN
-                    (SELECT DISTINCT ON (relayer_id)
+                    (
+                        SELECT DISTINCT ON (relayer_id)
                         relayer_id, TRUE as slashed
-                    FROM v_parachain_stakedrelayer_slash
-                    ORDER BY relayer_id) slash
+                        FROM v_parachain_stakedrelayer_slash
+                        ORDER BY relayer_id
+                    ) slash
                 ON reg.relayer_id = slash.relayer_id
                 LEFT OUTER JOIN
-                    (SELECT block_number
-                    FROM parachain_events
-                    ORDER BY block_number DESC
-                    LIMIT 1) latestblock
+                    (
+                        SELECT relayer_id, COUNT(DISTINCT bitcoin_hash) count
+                        FROM v_parachain_stakedrelayer_store
+                        GROUP BY relayer_id
+                    ) store
+                ON reg.relayer_id = store.relayer_id
+                LEFT OUTER JOIN
+                    (
+                        SELECT block_number
+                        FROM parachain_events
+                        ORDER BY block_number DESC
+                        LIMIT 1
+                    ) latestblock
                 ON TRUE
                 ORDER BY reg.relayer_id, reg.block_number DESC
             `);
@@ -111,6 +125,7 @@ export async function getAllRelayers(): Promise<RelayerData[]> {
                 stake: planckToDOT(row.stake),
                 bonded: row.bonded,
                 slashed: row.slashed,
+                block_count: row.block_count,
             }));
     } catch (e) {
         console.error(e);

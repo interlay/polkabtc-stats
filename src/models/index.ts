@@ -23,6 +23,7 @@ export { VParachainStatusReject } from "./VParachainStatusReject";
 export { VParachainStatusForce } from "./VParachainStatusForce";
 export { VParachainStatusExecute } from "./VParachainStatusExecute";
 export { VParachainStakedrelayerSlash } from "./VParachainStakedrelayerSlash";
+export { VParachainStakedrelayerStore } from "./VParachainStakedrelayerStore";
 export { VParachainRefundRequest } from "./VParachainRefundRequest";
 export { VParachainRefundExecute } from "./VParachainRefundExecute";
 export { VParachainVaultSlaUpdate } from "./VParachainVaultSlaUpdate";
