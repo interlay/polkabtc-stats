@@ -14,4 +14,8 @@ export interface Issue {
     btcBlockHeight: number;
     completed: boolean;
     cancelled: boolean;
-};
+    executedAmountBTC: string;
+    requestedRefund: boolean;
+    refundBtcAddress: string;
+    refundAmountBTC: string;
+}

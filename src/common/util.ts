@@ -1,6 +1,9 @@
 import pool from "./pool";
 import { TimeDataPoint } from "./commonModels";
 import { payments, networks } from "bitcoinjs-lib";
+import format from "pg-format";
+import { Colmuns } from "./columnTypes";
+import {FIXEDI128_SCALING_FACTOR} from "@interlay/polkabtc";
 
 export const msInDay = 86400 * 1000;
 export const MAX_CONF =
@@ -10,16 +13,20 @@ export const MAX_CONF =
 
 export type BtcNetworkName = "mainnet" | "testnet" | "regtest";
 
-export type Filter<Columns> = {
-    column: Columns;
+export type Filter<C extends Colmuns> = {
+    column: C;
     value: string;
 };
 
-export function filtersToWhere<Columns>(filters: Filter<Columns>[]) {
+export function filtersToWhere<C extends Colmuns>(filters: Filter<C>[]) {
     if (filters.length === 0) return "";
     return filters
         .reduce(
-            (cond, filter) => cond + `${filter.column} = '${filter.value}' AND `,
+            (cond, filter) =>
+                cond +
+                `${format.ident(filter.column)} = ${format.literal(
+                    filter.value
+                )} AND `,
             "WHERE "
         )
         .slice(0, -5);
@@ -60,6 +67,34 @@ export function btcAddressToString(
             network: networks[network === "mainnet" ? "bitcoin" : network],
         }).address || ""
     );
+}
+
+export function getDurationAboveMinSla(
+    minSla: number,
+    slaChanges: { f1: string; f2: string }[]
+) {
+    let maxDuration = 0;
+    let currentDuration = 0;
+    let lastTs = new Date(
+        Object.values(slaChanges[0])[1] as string
+    ).getTime();
+    slaChanges.forEach(
+        (slaChange) => {
+            const [newSlaEncoded, date] = Object.values(slaChange);
+            const timestamp = new Date(date).getTime();
+            const newSla = new Big(parseInt(newSlaEncoded, 16)).div(
+                new Big(10).pow(FIXEDI128_SCALING_FACTOR)
+            ); // To do: string parsing to make it bigint-safe?
+            if (newSla.gte(minSla)) {
+                currentDuration += timestamp - lastTs;
+                maxDuration = Math.max(maxDuration, currentDuration);
+            } else {
+                currentDuration = 0;
+            }
+            lastTs = timestamp;
+        }
+    );
+    return maxDuration;
 }
 
 /**

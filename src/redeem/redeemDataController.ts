@@ -5,11 +5,11 @@ import {
     getRecentDailyRedeems,
     getTotalSuccessfulRedeems,
     getTotalAmount,
-    RedeemColumns,
 } from "./redeemDataService";
 import { Redeem } from "./redeemModel";
 import { SatoshisTimeData } from "../common/commonModels";
-import {BtcNetworkName, Filter} from "../common/util";
+import { BtcNetworkName, Filter } from "../common/util";
+import { RedeemColumns } from "../common/columnTypes";
 
 @Tags("stats")
 @Route("redeems")
@@ -56,6 +56,13 @@ export class RedeemsController extends Controller {
         @Body() filters: Filter<RedeemColumns>[] = [],
         @Query() network: BtcNetworkName = "mainnet"
     ): Promise<Redeem[]> {
-        return getPagedRedeems(page, perPage, sortBy, sortAsc, filters, network);
+        return getPagedRedeems(
+            page,
+            perPage,
+            sortBy,
+            sortAsc,
+            filters,
+            network
+        );
     }
 }

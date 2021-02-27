@@ -1,6 +1,6 @@
 import { Controller, Get, Query, Route, Tags } from "tsoa";
-import { getAllRelayers, getRecentDailyRelayers } from "./relayersDataService";
-import { Relayer, RelayerCountTimeData } from "./relayersModel";
+import { getAllRelayers, getRecentDailyRelayers, getRelayersWithTrackRecord } from "./relayersDataService";
+import { RelayerData, RelayerCountTimeData, RelayerSlaRanking } from "./relayersModel";
 
 @Tags("stats")
 @Route("relayers")
@@ -12,8 +12,16 @@ export class RelayersController extends Controller {
         return getRecentDailyRelayers(daysBack);
     }
 
+    @Get("relayersWithTrackRecord")
+    public async listRelayersWithTrackRecord(
+        @Query() minSla = 0,
+        @Query() minConsecutivePeriod = 0
+    ): Promise<RelayerSlaRanking[]> {
+        return getRelayersWithTrackRecord(minSla, minConsecutivePeriod);
+    }
+
     @Get("")
-    public async getRelayers(): Promise<Relayer[]> {
+    public async getRelayers(): Promise<RelayerData[]> {
         return getAllRelayers();
     }
 }

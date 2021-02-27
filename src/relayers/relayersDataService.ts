@@ -1,7 +1,11 @@
-import { Relayer, RelayerCountTimeData} from "./relayersModel";
-import { runPerDayQuery } from "../common/util";
+import {
+    RelayerData,
+    RelayerCountTimeData,
+    RelayerSlaRanking,
+} from "./relayersModel";
+import { getDurationAboveMinSla, runPerDayQuery } from "../common/util";
 import pool from "../common/pool";
-import {planckToDOT} from "@interlay/polkabtc";
+import { planckToDOT } from "@interlay/polkabtc";
 
 export async function getRecentDailyRelayers(
     daysBack: number
@@ -11,7 +15,7 @@ export async function getRecentDailyRelayers(
             await runPerDayQuery(
                 daysBack,
                 (i, ts) =>
-                `
+                    `
                 SELECT
                     ${i} AS idx,
                     GREATEST(reg - dereg, 0) AS value
@@ -45,7 +49,31 @@ export async function getRecentDailyRelayers(
     }
 }
 
-export async function getAllRelayers(): Promise<Relayer[]> {
+export async function getRelayersWithTrackRecord(
+    minSla: number,
+    consecutiveTimespan: number
+): Promise<RelayerSlaRanking[]> {
+    try {
+        const res = await pool.query(`
+            SELECT
+                relayer_id,
+                json_agg(row(new_sla, block_ts)) as sla_changes
+            FROM v_parachain_stakedrelayer_sla_update
+            GROUP BY vault_id
+            `);
+        const reducedRows: RelayerSlaRanking[] = res.rows.map((row) => ({
+            id: row.relayer_id,
+            duration: getDurationAboveMinSla(minSla, row.sla_changes),
+            threshold: minSla,
+        }));
+        return reducedRows.filter((row) => row.duration >= consecutiveTimespan);
+    } catch (e) {
+        console.error(e);
+        throw e;
+    }
+}
+
+export async function getAllRelayers(): Promise<RelayerData[]> {
     try {
         const res = await pool.query(`
             SELECT DISTINCT ON (reg.relayer_id)
@@ -53,35 +81,52 @@ export async function getAllRelayers(): Promise<Relayer[]> {
                 reg.stake,
                 COALESCE(deregistered, FALSE) deregistered,
                 COALESCE(slashed, FALSE) slashed,
-                maturity::Integer < latestblock.block_number bonded
+                maturity::Integer < latestblock.block_number bonded,
+                COALESCE(store.count, 0) AS block_count
             FROM
                 v_parachain_stakedrelayer_register reg
                 LEFT OUTER JOIN
-                    (SELECT DISTINCT ON (relayer_id)
+                    (
+                        SELECT DISTINCT ON (relayer_id)
                         relayer_id, block_number, TRUE deregistered
-                    FROM v_parachain_stakedrelayer_deregister
-                    ORDER BY relayer_id, block_number DESC) dereg
+                        FROM v_parachain_stakedrelayer_deregister
+                        ORDER BY relayer_id, block_number DESC
+                    ) dereg
                 ON reg.relayer_id = dereg.relayer_id AND reg.block_number < dereg.block_number
                 LEFT OUTER JOIN
-                    (SELECT DISTINCT ON (relayer_id)
+                    (
+                        SELECT DISTINCT ON (relayer_id)
                         relayer_id, TRUE as slashed
-                    FROM v_parachain_stakedrelayer_slash
-                    ORDER BY relayer_id) slash
+                        FROM v_parachain_stakedrelayer_slash
+                        ORDER BY relayer_id
+                    ) slash
                 ON reg.relayer_id = slash.relayer_id
                 LEFT OUTER JOIN
-                    (SELECT block_number
-                    FROM parachain_events
-                    ORDER BY block_number DESC
-                    LIMIT 1) latestblock
+                    (
+                        SELECT relayer_id, COUNT(DISTINCT bitcoin_hash) count
+                        FROM v_parachain_stakedrelayer_store
+                        GROUP BY relayer_id
+                    ) store
+                ON reg.relayer_id = store.relayer_id
+                LEFT OUTER JOIN
+                    (
+                        SELECT block_number
+                        FROM parachain_events
+                        ORDER BY block_number DESC
+                        LIMIT 1
+                    ) latestblock
                 ON TRUE
                 ORDER BY reg.relayer_id, reg.block_number DESC
             `);
-        return res.rows.filter((row) => !row.deregistered).map((row) => ({
-            id: row.relayer_id,
-            stake: planckToDOT(row.stake),
-            bonded: row.bonded,
-            slashed: row.slashed,
-        }));
+        return res.rows
+            .filter((row) => !row.deregistered)
+            .map((row) => ({
+                id: row.relayer_id,
+                stake: planckToDOT(row.stake),
+                bonded: row.bonded,
+                slashed: row.slashed,
+                block_count: row.block_count,
+            }));
     } catch (e) {
         console.error(e);
         throw e;

@@ -4,6 +4,7 @@ import { ParachainStatusUpdate } from "./parachainModels";
 import pool from "../common/pool";
 import { Filter, filtersToWhere } from "../common/util";
 import {stripHexPrefix} from "@interlay/polkabtc";
+import {StatusUpdateColumns} from "../common/columnTypes";
 
 export async function getTotalStatusUpdates(): Promise<string> {
     try {
@@ -20,20 +21,6 @@ export async function getTotalStatusUpdates(): Promise<string> {
         throw e;
     }
 }
-
-export type StatusUpdateColumns =
-    | "update_id"
-    | "block_ts"
-    | "block_number"
-    | "new_status"
-    | "add_error"
-    | "remove_error"
-    | "btc_block_hash"
-    | "yeas"
-    | "nays"
-    | "executed"
-    | "rejected"
-    | "forced";
 
 export async function getPagedStatusUpdates(
     page: number,
@@ -97,7 +84,7 @@ export async function getPagedStatusUpdates(
                 FALSE AS rejected,
                 TRUE AS forced
             FROM v_parachain_status_force AS force
-            ${filtersToWhere(filters)}
+            ${filtersToWhere<StatusUpdateColumns>(filters)}
             ORDER BY ${format.ident(sortBy)} ${
                 sortAsc ? "ASC" : "DESC"
             }, update_id ASC

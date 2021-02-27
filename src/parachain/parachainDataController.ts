@@ -1,7 +1,9 @@
 import { Body, Controller, Get, Post, Query, Route, Tags } from "tsoa";
-import {Filter} from "../common/util";
+import { StatusUpdateColumns } from "../common/columnTypes";
+import { Filter } from "../common/util";
 import {
-    getPagedStatusUpdates, getTotalStatusUpdates, StatusUpdateColumns,
+    getPagedStatusUpdates,
+    getTotalStatusUpdates,
 } from "./parachainDataService";
 import { ParachainStatusUpdate } from "./parachainModels";
 
@@ -28,7 +30,6 @@ export class ParachainController extends Controller {
     ): Promise<ParachainStatusUpdate[]> {
         return getPagedStatusUpdates(page, perPage, sortBy, sortAsc, filters);
     }
-
 
     @Get("total")
     public async getTotalParachainStatusUpdates(): Promise<string> {

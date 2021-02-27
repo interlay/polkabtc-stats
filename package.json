@@ -1,7 +1,7 @@
 {
     "name": "@interlay/polkabtc-stats",
-    "version": "0.1.2",
-    "license": "MIT",
+    "version": "0.1.9",
+    "license": "Apache-2.0",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
     "files": [
@@ -21,7 +21,9 @@
         "@polkadot/api": "3.6.1",
         "@polkadot/rpc-core": "3.6.1",
         "@supercharge/promise-pool": "^1.6.0",
+        "@types/big.js": "^6.0.2",
         "@types/pg-format": "^1.0.1",
+        "big.js": "^6.0.3",
         "bitcoinjs-lib": "^5.2.0",
         "body-parser": "^1.19.0",
         "dotenv": "^8.2.0",

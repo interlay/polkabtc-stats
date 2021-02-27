@@ -12,6 +12,7 @@ import {
 } from "../common/util";
 import { getTxDetailsForRequest, RequestType } from "../common/btcTxUtils";
 import {planckToDOT, satToBTC, stripHexPrefix} from "@interlay/polkabtc";
+import {RedeemColumns} from "../common/columnTypes";
 
 export async function getTotalSuccessfulRedeems(): Promise<string> {
     try {
@@ -77,20 +78,6 @@ export async function getRecentDailyRedeems(
     }
 }
 
-export type RedeemColumns =
-    | "redeem_id"
-    | "requester"
-    | "amount_polka_btc"
-    | "fee_polkabtc"
-    | "dot_premium"
-    | "block_number"
-    | "block_ts"
-    | "reimbursed"
-    | "vault_id"
-    | "btc_address"
-    | "cancelled"
-    | "executed";
-
 export async function getPagedRedeems(
     page: number,
     perPage: number,
@@ -116,7 +103,7 @@ export async function getPagedRedeems(
                         redeem_id, true AS executed
                     FROM "v_parachain_redeem_execute")
                 AS ex USING (redeem_id)
-            ${filtersToWhere(filters)}
+            ${filtersToWhere<RedeemColumns>(filters)}
             ORDER BY ${format.ident(sortBy)} ${
                 sortAsc ? "ASC" : "DESC"
             }, redeem_id ASC
@@ -155,7 +142,7 @@ export async function getPagedRedeems(
                     btcBlockHeight: blockHeight,
                     completed: row.executed ? true : false,
                     cancelled: row.cancelled ? true : false,
-                    reimbursed: row.reimbursed ? true : false,
+                    reimbursed: row.reimbursed === "true" ? true : false,
                     isExpired: false,
                 };
             })

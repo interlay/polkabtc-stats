@@ -4,11 +4,11 @@ import {
     getTotalIssues,
     getRecentDailyIssues,
     getPagedIssues,
-    IssueColumns,
 } from "./issueDataService";
 import { Issue } from "./issueModels";
 import { SatoshisTimeData } from "../common/commonModels";
-import {BtcNetworkName, Filter} from "../common/util";
+import { BtcNetworkName, Filter } from "../common/util";
+import { IssueColumns } from "../common/columnTypes";
 
 @Tags("stats")
 @Route("issues")
@@ -36,7 +36,7 @@ export class IssuesController extends Controller {
         @Query() perPage = 20,
         @Query() sortBy: IssueColumns = "block_number",
         @Query() sortAsc = false,
-        @Query() network = "mainnet" as BtcNetworkName,
+        @Query() network = "mainnet" as BtcNetworkName
     ): Promise<Issue[]> {
         return getPagedIssues(page, perPage, sortBy, sortAsc, [], network);
     }
@@ -48,7 +48,7 @@ export class IssuesController extends Controller {
         @Query() sortBy: IssueColumns = "block_number",
         @Query() sortAsc = false,
         @Body() filters: Filter<IssueColumns>[] = [],
-        @Query() network = "mainnet" as BtcNetworkName,
+        @Query() network = "mainnet" as BtcNetworkName
     ): Promise<Issue[]> {
         return getPagedIssues(page, perPage, sortBy, sortAsc, filters, network);
     }

@@ -1,15 +1,14 @@
 import format from "pg-format";
 import { BtcBlock } from "./blockModel";
 import pool from "../common/pool";
-import {stripHexPrefix} from "@interlay/polkabtc";
-
-export type BlockColumn = "height" | "hash" | "relay_ts";
+import { stripHexPrefix } from "@interlay/polkabtc";
+import { BlockColumns } from "../common/columnTypes";
 
 export async function getPagedBlocks(
     page: number,
     perPage: number,
-    sortBy: BlockColumn,
-    sortAsc: boolean,
+    sortBy: BlockColumns,
+    sortAsc: boolean
 ): Promise<BtcBlock[]> {
     const res = await pool.query(
         `SELECT

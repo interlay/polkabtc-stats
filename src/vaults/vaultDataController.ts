@@ -2,8 +2,10 @@ import { Controller, Get, Query, Route, Tags } from "tsoa";
 import {
     getRecentDailyVaults,
     getRecentDailyCollateral,
+    getAllVaults,
+    getVaultsWithTrackRecord,
 } from "./vaultDataService";
-import { VaultCountTimeData, CollateralTimeData } from "./vaultModels";
+import { VaultData, VaultCountTimeData, CollateralTimeData, VaultSlaRanking } from "./vaultModels";
 
 @Tags("stats")
 @Route("vaults")
@@ -20,5 +22,18 @@ export class VaultsController extends Controller {
         @Query() daysBack = 5
     ): Promise<CollateralTimeData[]> {
         return getRecentDailyCollateral(daysBack);
+    }
+
+    @Get("vaultsWithTrackRecord")
+    public async listVaultsWithTrackRecord(
+        @Query() minSla = 0,
+        @Query() minConsecutivePeriod = 0
+    ): Promise<VaultSlaRanking[]> {
+        return getVaultsWithTrackRecord(minSla, minConsecutivePeriod);
+    }
+
+    @Get("")
+    public async getVaults(): Promise<VaultData[]> {
+        return getAllVaults();
     }
 }

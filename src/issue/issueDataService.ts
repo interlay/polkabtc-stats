@@ -12,6 +12,7 @@ import {
     runPerDayQuery,
 } from "../common/util";
 import { getTxDetailsForRequest, RequestType } from "../common/btcTxUtils";
+import { IssueColumns } from "../common/columnTypes";
 
 export async function getTotalSuccessfulIssues(): Promise<string> {
     try {
@@ -61,20 +62,6 @@ export async function getRecentDailyIssues(
     }
 }
 
-export type IssueColumns =
-    | "issue_id"
-    | "amount_btc"
-    | "requester"
-    | "fee_polkabtc"
-    | "griefing_collateral"
-    | "vault_wallet_pubkey"
-    | "block_number"
-    | "block_ts"
-    | "vault_id"
-    | "btc_address"
-    | "cancelled"
-    | "executed";
-
 export async function getPagedIssues(
     page: number,
     perPage: number,
@@ -86,7 +73,7 @@ export async function getPagedIssues(
     try {
         const res = await pool.query(
             `SELECT
-                req.issue_id, req.requester, req.fee_polkabtc, req.griefing_collateral, req.vault_wallet_pubkey, req.amount_btc, req.block_number, req.block_ts, req.vault_id, req.btc_address, cl.cancelled, ex.executed
+                req.issue_id, req.requester, req.fee_polkabtc, req.griefing_collateral, req.vault_wallet_pubkey, req.amount_btc, req.block_number, req.block_ts, req.vault_id, req.btc_address, cl.cancelled, ex.executed, ex.executed_amount, refund.refunded, refund.refund_btc_address, refund.refund_amount
             FROM
                 "v_parachain_data_request_issue" as req
                 LEFT OUTER JOIN
@@ -96,10 +83,17 @@ export async function getPagedIssues(
                 AS cl USING (issue_id)
                 LEFT OUTER JOIN
                     (SELECT
-                        issue_id, true AS executed
+                        issue_id, true AS executed, amount_btc as executed_amount
                     FROM "v_parachain_data_execute_issue")
                 AS ex USING (issue_id)
-            ${filtersToWhere(filters)}
+                LEFT OUTER JOIN
+                    (SELECT
+                        issue_id, true AS refunded, 
+                        btc_address AS refund_btc_address, 
+                        amount AS refund_amount
+                    FROM "v_parachain_refund_request")
+                AS refund USING (issue_id)
+            ${filtersToWhere<IssueColumns>(filters)}
             ORDER BY ${format.ident(sortBy)} ${
                 sortAsc ? "ASC" : "DESC"
             }, issue_id ASC
@@ -112,6 +106,9 @@ export async function getPagedIssues(
                     row.btc_address,
                     network
                 );
+                const refundBtcAddress = row.refund_btc_address
+                    ? btcAddressToString(row.refund_btc_address, network)
+                    : "";
                 const {
                     txid,
                     confirmations,
@@ -137,6 +134,14 @@ export async function getPagedIssues(
                     btcBlockHeight: blockHeight,
                     completed: row.executed ? true : false,
                     cancelled: row.cancelled ? true : false,
+                    requestedRefund: row.refunded ? true : false,
+                    executedAmountBTC: row.executed_amount
+                        ? satToBTC(row.executed_amount)
+                        : "",
+                    refundBtcAddress,
+                    refundAmountBTC: row.refund_amount
+                        ? satToBTC(row.refund_amount)
+                        : "",
                 };
             })
         );
