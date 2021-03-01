@@ -3,9 +3,15 @@ import {
     RelayerCountTimeData,
     RelayerSlaRanking,
 } from "./relayersModel";
-import { getDurationAboveMinSla, runPerDayQuery } from "../common/util";
+import Big from "big.js";
+import {
+    getDurationAboveMinSla,
+    hexStringFixedPointToBig,
+    runPerDayQuery,
+} from "../common/util";
 import pool from "../common/pool";
 import { planckToDOT } from "@interlay/polkabtc";
+import { getPolkaBtc } from "../common/polkaBtc";
 
 export async function getRecentDailyRelayers(
     daysBack: number
@@ -61,9 +67,14 @@ export async function getRelayersWithTrackRecord(
             FROM v_parachain_stakedrelayer_sla_update
             GROUP BY vault_id
             `);
+        const polkaBtc = await getPolkaBtc();
         const reducedRows: RelayerSlaRanking[] = res.rows.map((row) => ({
             id: row.relayer_id,
-            duration: getDurationAboveMinSla(minSla, row.sla_changes),
+            duration: getDurationAboveMinSla(
+                polkaBtc.api,
+                minSla,
+                row.sla_changes
+            ),
             threshold: minSla,
         }));
         return reducedRows.filter((row) => row.duration >= consecutiveTimespan);
@@ -85,6 +96,13 @@ export async function getAllRelayers(): Promise<RelayerData[]> {
             FROM
                 v_parachain_stakedrelayer_register reg
                 LEFT OUTER JOIN
+                  (
+                    SELECT relayer_id, array_agg(delta) lifetime_sla_change
+                    FROM v_parachain_stakedrelayer_sla_update
+                    GROUP BY relayer_id
+                  ) sla_change
+                USING (relayer_id)
+                LEFT OUTER JOIN
                     (SELECT DISTINCT ON (relayer_id)
                         relayer_id, block_number, TRUE deregistered
                     FROM v_parachain_stakedrelayer_deregister
@@ -104,6 +122,7 @@ export async function getAllRelayers(): Promise<RelayerData[]> {
                 ON TRUE
                 ORDER BY reg.relayer_id, reg.block_number DESC
             `);
+        const polkaBtc = await getPolkaBtc();
         return res.rows
             .filter((row) => !row.deregistered)
             .map((row) => ({
@@ -111,6 +130,16 @@ export async function getAllRelayers(): Promise<RelayerData[]> {
                 stake: planckToDOT(row.stake),
                 bonded: row.bonded,
                 slashed: row.slashed,
+                lifetime_sla: row.lifetime_sla_change
+                    ? row.lifetime_sla_change.reduce(
+                          (acc: Big, encodedDelta: string) =>
+                              hexStringFixedPointToBig(
+                                  polkaBtc.api,
+                                  encodedDelta
+                              ).add(acc),
+                          new Big(0)
+                      )
+                    : 0,
             }));
     } catch (e) {
         console.error(e);
