@@ -9,6 +9,7 @@ export interface RelayerData {
     bonded: boolean;
     slashed: boolean;
     lifetime_sla: number;
+    block_count: number;
 }
 
 export interface RelayerSlaRanking {
