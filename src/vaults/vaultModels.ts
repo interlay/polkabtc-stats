@@ -16,6 +16,7 @@ export interface VaultData {
     request_redeem_count: number;
     execute_redeem_count: number;
     cancel_redeem_count: number;
+    lifetime_sla: number;
 }
 
 export interface VaultSlaRanking {

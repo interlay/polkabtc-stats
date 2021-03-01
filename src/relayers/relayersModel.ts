@@ -8,6 +8,7 @@ export interface RelayerData {
     stake: string;
     bonded: boolean;
     slashed: boolean;
+    lifetime_sla: number;
     block_count: number;
 }
 
