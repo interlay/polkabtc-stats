@@ -7,7 +7,6 @@ import Big from "big.js";
 import {
     getDurationAboveMinSla,
     hexStringFixedPointToBig,
-    runPerDayQuery,
 } from "../common/util";
 import pool from "../common/pool";
 import { planckToDOT } from "@interlay/polkabtc";
@@ -17,38 +16,19 @@ export async function getRecentDailyRelayers(
     daysBack: number
 ): Promise<RelayerCountTimeData[]> {
     try {
-        return (
-            await runPerDayQuery(
-                daysBack,
-                (i, ts) =>
-                    `
-                SELECT
-                    ${i} AS idx,
-                    GREATEST(reg - dereg, 0) AS value
-                FROM
-                    (
-                        SELECT
-                            COUNT(relayer_id) AS reg
-                        FROM v_parachain_stakedrelayer_register
-                        LEFT OUTER JOIN
-                            (SELECT block_number
-                            FROM parachain_events
-                            ORDER BY block_number DESC
-                            LIMIT 1) latestblock
-                        ON TRUE
-                        WHERE
-                            block_ts < '${ts}'
-                            AND maturity::Integer < latestblock.block_number
-                    ) as r,
-                    (
-                        SELECT
-                            COUNT(relayer_id) AS dereg
-                        FROM v_parachain_stakedrelayer_deregister
-                        WHERE block_ts < '${ts}'
-                    ) as d
-            `
-            )
-        ).map((row) => ({ date: row.date, count: row.value }));
+
+        return (await pool.query(`
+        SELECT extract(epoch from d.date) * 1000 as date,
+        (
+            SELECT COUNT(relayer_id) AS reg
+            FROM v_parachain_stakedrelayer_register
+            WHERE block_ts::date = d.date AND maturity::Integer < (SELECT max(block_number) as block_number FROM parachain_events)
+        ) as regs,
+        (SELECT COUNT(relayer_id) AS dereg FROM v_parachain_stakedrelayer_deregister WHERE block_ts::date = d.date) as deregs
+        FROM (SELECT (current_date - offs) AS date FROM generate_series(0, ${daysBack}, 1) AS offs) d
+        ORDER BY 1 ASC`))
+            .rows
+            .map((row) => ({ date: row.date, count: Math.max(row.regs - row.deregs, 0) }));
     } catch (e) {
         console.error(e);
         throw e;
