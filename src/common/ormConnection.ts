@@ -39,12 +39,8 @@ export const getTypeORMConnection: () => Promise<Connection> = async () => {
     if (conn === undefined) {
         conn = createConnection({
             type: "postgres",
-            host: process.env.PGHOST,
-            port: parseInt(process.env.PGPORT || "5432"),
-            username: process.env.PGUSER,
-            password: process.env.PGPASSWORD,
-            database: process.env.PGDATABASE,
             synchronize: true,
+            extra: { ssl: { rejectUnauthorized: false } },
             logging: false,
             entities: [
                 ParachainEvents,
