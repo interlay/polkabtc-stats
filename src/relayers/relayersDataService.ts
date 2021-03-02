@@ -93,7 +93,8 @@ export async function getAllRelayers(): Promise<RelayerData[]> {
                 COALESCE(deregistered, FALSE) deregistered,
                 COALESCE(slashed, FALSE) slashed,
                 maturity::Integer < latestblock.block_number bonded,
-                COALESCE(store.count, 0) AS block_count
+                COALESCE(store.count, 0) AS block_count,
+                lifetime_sla_change
             FROM
                 v_parachain_stakedrelayer_register reg
                 LEFT OUTER JOIN
