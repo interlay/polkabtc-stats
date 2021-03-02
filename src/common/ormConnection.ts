@@ -1,4 +1,4 @@
-import { Connection, createConnection } from "typeorm";
+import { Connection, createConnection, getConnection } from "typeorm";
 
 import {
     ParachainEvents,
@@ -33,48 +33,47 @@ import {
     VParachainStakedrelayerSlaUpdate,
 } from "../models/";
 
-let conn: Connection | Promise<Connection> | undefined;
+createConnection({
+    name: 'default',
+    type: "postgres",
+    //synchronize: false, // call synchronize() explicitly when the app starts
+    extra: { ssl: { rejectUnauthorized: false } },
+    logging: ["error"],
+    maxQueryExecutionTime: 1000,
+    entities: [
+        ParachainEvents,
+        VParachainData,
+        VParachainDataCancelIssue,
+        VParachainDataRequestIssue,
+        VParachainCanceledIssues,
+        VParachainCollateralLock,
+        VParachainCollateralRelease,
+        VParachainCollateralSlash,
+        VParachainDataExecuteIssue,
+        VParachainExecutedIssues,
+        VParachainVaultIssueRedeem,
+        VParachainVaultSlaUpdate,
+        VParachainVaultCollateral,
+        VParachainVaultRegistration,
+        VParachainStakedrelayerDeregister,
+        VParachainStakedrelayerRegister,
+        VParachainStakedrelayerSlash,
+        VParachainStakedrelayerSlaUpdate,
+        VParachainStakedrelayerStore,
+        VParachainRedeemRequest,
+        VParachainRedeemExecute,
+        VParachainRedeemCancel,
+        VParachainStatusSuggest,
+        VParachainStatusVote,
+        VParachainStatusExecute,
+        VParachainStatusReject,
+        VParachainStatusForce,
+        VParachainRefundRequest,
+        VParachainRefundExecute,
+        RequestTxCache,
+    ],
+})
 
 export const getTypeORMConnection: () => Promise<Connection> = async () => {
-    if (conn === undefined) {
-        conn = createConnection({
-            type: "postgres",
-            synchronize: true,
-            extra: { ssl: { rejectUnauthorized: false } },
-            logging: false,
-            entities: [
-                ParachainEvents,
-                VParachainData,
-                VParachainDataCancelIssue,
-                VParachainDataRequestIssue,
-                VParachainCanceledIssues,
-                VParachainCollateralLock,
-                VParachainCollateralRelease,
-                VParachainCollateralSlash,
-                VParachainDataExecuteIssue,
-                VParachainExecutedIssues,
-                VParachainVaultIssueRedeem,
-                VParachainVaultSlaUpdate,
-                VParachainVaultCollateral,
-                VParachainVaultRegistration,
-                VParachainStakedrelayerDeregister,
-                VParachainStakedrelayerRegister,
-                VParachainStakedrelayerSlash,
-                VParachainStakedrelayerSlaUpdate,
-                VParachainStakedrelayerStore,
-                VParachainRedeemRequest,
-                VParachainRedeemExecute,
-                VParachainRedeemCancel,
-                VParachainStatusSuggest,
-                VParachainStatusVote,
-                VParachainStatusExecute,
-                VParachainStatusReject,
-                VParachainStatusForce,
-                VParachainRefundRequest,
-                VParachainRefundExecute,
-                RequestTxCache,
-            ],
-        });
-    }
-    return conn;
+    return getConnection('default');
 };
