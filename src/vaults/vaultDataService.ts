@@ -19,7 +19,7 @@ export async function getRecentDailyVaults(
 ): Promise<VaultCountTimeData[]> {
     try {
         return (await pool.query(`
-        SELECT extract(epoch from d.date) * 1000 as date, count(v.vault_id)
+        SELECT extract(epoch from d.date) * 1000 as date, count(v.vault_id) as value
         FROM (SELECT (current_date - offs) AS date FROM generate_series(0, ${daysBack}, 1) AS offs) d
         LEFT OUTER JOIN v_parachain_vault_registration v
         ON d.date = v.block_ts::date
