@@ -47,9 +47,7 @@ export async function getRecentDailyIssues(
         LEFT OUTER JOIN v_parachain_data_execute_issue AS ex LEFT OUTER JOIN v_parachain_data_request_issue AS req USING (issue_id)
         ON d.date = ex.block_ts::date
         GROUP BY 1
-        ORDER BY 1 ASC`, [daysBack]))
-            .rows
-            .map((row) => ({ date: row.date, sat: row.sat }));
+        ORDER BY 1 ASC`, [daysBack])).rows
     } catch (e) {
         console.error(e);
         throw e;
