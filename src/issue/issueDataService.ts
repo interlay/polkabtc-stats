@@ -8,8 +8,7 @@ import {
     btcAddressToString,
     BtcNetworkName,
     Filter,
-    filtersToWhere,
-    runPerDayQuery,
+    filtersToWhere
 } from "../common/util";
 import { getTxDetailsForRequest, RequestType } from "../common/btcTxUtils";
 import { IssueColumns } from "../common/columnTypes";
@@ -44,11 +43,11 @@ export async function getRecentDailyIssues(
     try {
         return (await pool.query(`
         SELECT extract(epoch from d.date) * 1000 as date, coalesce(SUM(ex.amount_btc::INTEGER), 0) AS sat
-        FROM (SELECT (current_date - offs) AS date FROM generate_series(0, ${daysBack}, 1) AS offs) d
+        FROM (SELECT (current_date - offs) AS date FROM generate_series(0, $1, 1) AS offs) d
         LEFT OUTER JOIN v_parachain_data_execute_issue AS ex LEFT OUTER JOIN v_parachain_data_request_issue AS req USING (issue_id)
         ON d.date = ex.block_ts::date
         GROUP BY 1
-        ORDER BY 1 ASC`))
+        ORDER BY 1 ASC`, [daysBack]))
             .rows
             .map((row) => ({ date: row.date, sat: row.sat }));
     } catch (e) {
