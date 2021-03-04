@@ -3,8 +3,7 @@ import "reflect-metadata";
 
 import { app } from "./app";
 import monitor from "./monitor";
-import { getTypeORMConnection } from "./common/ormConnection";
-import { PORT, MONITOR, SYNC_DB_SCHEMA } from "./common/constants";
+import { PORT, MONITOR } from "./common/constants";
 import pino from "pino";
 
 export const logger = pino({ name: 'server' });
