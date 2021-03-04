@@ -34,10 +34,10 @@ import {
 } from "../models/";
 import { ENABLE_PG_SSL } from "./constants";
 
-createConnection({
+const connectionPromise: Promise<Connection> = createConnection({
     name: 'default',
     type: "postgres",
-    //synchronize: false, // call synchronize() explicitly when the app starts
+    // synchronize: true, // call synchronize() explicitly when the app starts
     extra: ENABLE_PG_SSL ? { ssl: { rejectUnauthorized: false } } : {},
     logging: ["error"],
     maxQueryExecutionTime: 1000,
@@ -76,5 +76,6 @@ createConnection({
 })
 
 export const getTypeORMConnection: () => Promise<Connection> = async () => {
+    await connectionPromise; // make sure promise is resolved to prevent race condition
     return getConnection('default');
 };
