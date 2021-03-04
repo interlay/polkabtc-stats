@@ -13,14 +13,6 @@ app.listen(PORT, () =>
     console.log(`polkabtc-stats listening at http://localhost:${PORT}`)
 );
 
-if (SYNC_DB_SCHEMA) {
-    getTypeORMConnection()
-        .then(conn => {
-            conn.synchronize(true);
-        })
-        .catch(err => logger.error(err))
-}
-
 if (MONITOR) {
     // process historical and incoming blocks and
     // propogate to the postgres database

@@ -32,12 +32,12 @@ import {
     VParachainVaultSlaUpdate,
     VParachainStakedrelayerSlaUpdate,
 } from "../models/";
-import { ENABLE_PG_SSL } from "./constants";
+import { ENABLE_PG_SSL, SYNC_DB_SCHEMA } from "./constants";
 
 createConnection({
     name: 'default',
     type: "postgres",
-    //synchronize: false, // call synchronize() explicitly when the app starts
+    synchronize: SYNC_DB_SCHEMA,
     extra: ENABLE_PG_SSL ? { ssl: { rejectUnauthorized: false } } : {},
     logging: ["error"],
     maxQueryExecutionTime: 1000,
