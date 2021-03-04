@@ -61,9 +61,10 @@ export async function getRecentDailyRedeems(
         SELECT extract(epoch from d.date) * 1000 as date, coalesce(SUM(ex.amount_polka_btc::INTEGER), 0) AS sat
         FROM (SELECT (current_date - offs) AS date FROM generate_series(0, $1, 1) AS offs) d
         LEFT OUTER JOIN v_parachain_redeem_execute AS ex LEFT OUTER JOIN v_parachain_redeem_request AS req USING (redeem_id)
-        ON d.date = ex.block_ts::date
+        ON d.date >= ex.block_ts::date
         GROUP BY 1
-        ORDER BY 1 ASC`, [daysBack]))
+        ORDER BY 1 ASC
+            `, [daysBack]))
             .rows
             .map((row) => ({ date: row.date, sat: row.sat }));
     } catch (e) {

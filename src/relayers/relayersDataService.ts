@@ -25,11 +25,12 @@ export async function getRecentDailyRelayers(
         (
             SELECT COUNT(relayer_id) AS reg
             FROM v_parachain_stakedrelayer_register
-            WHERE block_ts::date = d.date AND maturity::Integer < (SELECT max(block_number) as block_number FROM parachain_events)
+            WHERE block_ts::date <= d.date AND maturity::Integer < (SELECT max(block_number) as block_number FROM parachain_events)
         ) as regs,
-        (SELECT COUNT(relayer_id) AS dereg FROM v_parachain_stakedrelayer_deregister WHERE block_ts::date = d.date) as deregs
+        (SELECT COUNT(relayer_id) AS dereg FROM v_parachain_stakedrelayer_deregister WHERE block_ts::date <= d.date) as deregs
         FROM (SELECT (current_date - offs) AS date FROM generate_series(0, $1, 1) AS offs) d
-        ORDER BY 1 ASC`, [daysBack]))
+        ORDER BY 1 ASC
+            `, [daysBack]))
             .rows
             .map((row) => ({ date: row.date, count: Math.max(row.regs - row.deregs, 0) }));
     } catch (e) {

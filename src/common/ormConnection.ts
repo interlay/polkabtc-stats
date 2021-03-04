@@ -34,7 +34,7 @@ import {
 } from "../models/";
 import { ENABLE_PG_SSL, SYNC_DB_SCHEMA } from "./constants";
 
-createConnection({
+const connectionPromise: Promise<Connection> = createConnection({
     name: 'default',
     type: "postgres",
     synchronize: SYNC_DB_SCHEMA,
@@ -76,5 +76,6 @@ createConnection({
 })
 
 export const getTypeORMConnection: () => Promise<Connection> = async () => {
+    await connectionPromise; // make sure promise is resolved to prevent race condition
     return getConnection('default');
 };
