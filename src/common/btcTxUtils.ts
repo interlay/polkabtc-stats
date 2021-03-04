@@ -1,6 +1,9 @@
 import { getRepository } from "typeorm";
 import { RequestTxCache } from "../models/RequestTxCache";
 import { getPolkaBtc } from "./polkaBtc";
+import pino from "pino";
+
+export const logger = pino({ name: 'btcTxUtils' });
 
 export type TxDetails = {
     txid: string;
@@ -69,8 +72,7 @@ export async function getTxDetailsForRequest(
             });
             return { txid, blockHeight, confirmations };
         } catch (e) {
-            console.log(`Failed to get BTC tx data for ${requestId}:`);
-            console.log(e);
+            logger.warn(e, `Failed to get BTC tx data for ${requestId}`);
             return { txid: "", blockHeight: 0 };
         }
     } else if (
@@ -95,8 +97,7 @@ export async function getTxDetailsForRequest(
                 blockHeight,
             };
         } catch (e) {
-            console.log(`Failed to get BTC confirmations for ${requestId}:`);
-            console.log(e);
+            logger.warn(e, `Failed to get BTC confirmations for ${requestId}`);
             return { txid: savedDetails.txid, blockHeight: 0 };
         }
     } else {
