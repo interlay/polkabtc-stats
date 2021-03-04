@@ -72,7 +72,7 @@ export async function getTxDetailsForRequest(
             });
             return { txid, blockHeight, confirmations };
         } catch (e) {
-            logger.warn(e, `Failed to get BTC tx data for ${requestId}`);
+            logger.warn({ err: e, requestId: requestId }, `Failed to get BTC tx data for ${requestId}`);
             return { txid: "", blockHeight: 0 };
         }
     } else if (
@@ -97,7 +97,7 @@ export async function getTxDetailsForRequest(
                 blockHeight,
             };
         } catch (e) {
-            logger.warn(e, `Failed to get BTC confirmations for ${requestId}`);
+            logger.warn({ err: e, requestId: requestId }, `Failed to get BTC confirmations for ${requestId}`);
             return { txid: savedDetails.txid, blockHeight: 0 };
         }
     } else {
