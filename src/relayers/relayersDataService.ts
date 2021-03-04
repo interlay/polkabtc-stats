@@ -11,6 +11,9 @@ import {
 import pool from "../common/pool";
 import { planckToDOT } from "@interlay/polkabtc";
 import { getPolkaBtc } from "../common/polkaBtc";
+import pino from "pino";
+
+export const logger = pino({ name: 'relayersDataService' });
 
 export async function getRecentDailyRelayers(
     daysBack: number
@@ -30,7 +33,7 @@ export async function getRecentDailyRelayers(
             .rows
             .map((row) => ({ date: row.date, count: Math.max(row.regs - row.deregs, 0) }));
     } catch (e) {
-        console.error(e);
+        logger.error(e);
         throw e;
     }
 }
@@ -59,7 +62,7 @@ export async function getRelayersWithTrackRecord(
         }));
         return reducedRows.filter((row) => row.duration >= consecutiveTimespan);
     } catch (e) {
-        console.error(e);
+        logger.error(e);
         throw e;
     }
 }
@@ -138,7 +141,7 @@ export async function getAllRelayers(): Promise<RelayerData[]> {
                 block_count: row.block_count,
             }));
     } catch (e) {
-        console.error(e);
+        logger.error(e);
         throw e;
     }
 }

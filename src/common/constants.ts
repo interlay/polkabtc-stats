@@ -5,3 +5,4 @@ export const BTC_NETWORK = process.env.BTC_NETWORK || "http://localhost:3002"; /
 export const ENABLE_PG_SSL =
     process.env.PGSSLMODE && process.env.PGSSLMODE === "require";
 export const PGREPLICAHOST = process.env.PGREPLICAHOST || process.env.PGHOST
+export const SYNC_DB_SCHEMA = process.env.SYNC_DB_SCHEMA && process.env.SYNC_DB_SCHEMA === "1"

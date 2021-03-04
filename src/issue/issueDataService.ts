@@ -12,6 +12,9 @@ import {
 } from "../common/util";
 import { getTxDetailsForRequest, RequestType } from "../common/btcTxUtils";
 import { IssueColumns } from "../common/columnTypes";
+import pino from "pino";
+
+export const logger = pino({ name: 'issueDataService' });
 
 export async function getTotalSuccessfulIssues(): Promise<string> {
     try {
@@ -20,7 +23,7 @@ export async function getTotalSuccessfulIssues(): Promise<string> {
         );
         return res.rows[0].count;
     } catch (e) {
-        console.error(e);
+        logger.error(e);
         throw e;
     }
 }
@@ -32,7 +35,7 @@ export async function getTotalIssues(): Promise<string> {
         );
         return res.rows[0].count;
     } catch (e) {
-        console.error(e);
+        logger.error(e);
         throw e;
     }
 }
@@ -49,7 +52,7 @@ export async function getRecentDailyIssues(
         GROUP BY 1
         ORDER BY 1 ASC`, [daysBack])).rows
     } catch (e) {
-        console.error(e);
+        logger.error(e);
         throw e;
     }
 }
@@ -138,8 +141,7 @@ export async function getPagedIssues(
             })
         );
     } catch (e) {
-        console.error("[ISSUE] getPagedIssues: uncaught error");
-        console.error(e);
+        logger.error(e);
         throw e;
     }
 }

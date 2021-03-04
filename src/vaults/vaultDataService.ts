@@ -13,6 +13,9 @@ import pool from "../common/pool";
 import Big from "big.js";
 import { planckToDOT } from "@interlay/polkabtc";
 import { getPolkaBtc } from "../common/polkaBtc";
+import pino from "pino";
+
+export const logger = pino({ name: 'vaultDataService' });
 
 export async function getRecentDailyVaults(
     daysBack: number
@@ -28,7 +31,7 @@ export async function getRecentDailyVaults(
             .rows
             .map((row) => ({ date: row.date, count: row.value }));
     } catch (e) {
-        console.error(e);
+        logger.error(e);
         throw e;
     }
 }
@@ -57,7 +60,7 @@ export async function getVaultsWithTrackRecord(
         }));
         return reducedRows.filter((row) => row.duration >= consecutiveTimespan);
     } catch (e) {
-        console.error(e);
+        logger.error(e);
         throw e;
     }
 }
@@ -85,7 +88,7 @@ export async function getRecentDailyCollateral(
             )
         ).map((row) => ({ date: row.date, amount: row.value }));
     } catch (e) {
-        console.error(e);
+        logger.error(e);
         throw e;
     }
 }
@@ -165,17 +168,17 @@ export async function getAllVaults(): Promise<VaultData[]> {
             cancel_redeem_count: row.cancel_redeem_count,
             lifetime_sla: row.lifetime_sla_change
                 ? row.lifetime_sla_change.reduce(
-                      (acc: Big, encodedDelta: string) =>
-                          hexStringFixedPointToBig(
-                              polkaBtc.api,
-                              encodedDelta
-                          ).add(acc),
-                      new Big(0)
-                  )
+                    (acc: Big, encodedDelta: string) =>
+                        hexStringFixedPointToBig(
+                            polkaBtc.api,
+                            encodedDelta
+                        ).add(acc),
+                    new Big(0)
+                )
                 : 0,
         }));
     } catch (e) {
-        console.error(e);
+        logger.error(e);
         throw e;
     }
 }
