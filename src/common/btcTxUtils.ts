@@ -39,7 +39,7 @@ export async function getTxDetailsForRequest(
     const polkabtc = await getPolkaBtc();
 
     const savedDetails = (
-        await getRepository(RequestTxCache).find({
+        await getRepository(RequestTxCache, "pg_replica").find({
             id: requestId,
             request_type: requestType,
         })
