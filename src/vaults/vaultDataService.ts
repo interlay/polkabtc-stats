@@ -13,9 +13,9 @@ import pool from "../common/pool";
 import Big from "big.js";
 import { planckToDOT } from "@interlay/polkabtc";
 import { getPolkaBtc } from "../common/polkaBtc";
-import pino from "pino";
+import logFn from '../common/logger'
 
-export const logger = pino({ name: 'vaultDataService' });
+export const logger = logFn({ name: 'vaultDataService' });
 
 export async function getRecentDailyVaults(
     daysBack: number

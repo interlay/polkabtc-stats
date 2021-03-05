@@ -12,9 +12,9 @@ import {
 } from "../common/util";
 import { getTxDetailsForRequest, RequestType } from "../common/btcTxUtils";
 import { IssueColumns } from "../common/columnTypes";
-import pino from "pino";
+import logFn from '../common/logger'
 
-export const logger = pino({ name: 'issueDataService' });
+export const logger = logFn({ name: 'issueDataService' });
 
 export async function getTotalSuccessfulIssues(): Promise<string> {
     try {

@@ -4,19 +4,19 @@ import "reflect-metadata";
 import { app } from "./app";
 import monitor from "./monitor";
 import { PORT, MONITOR } from "./common/constants";
-import pino from "pino";
+import logFn from './common/logger'
 
-export const logger = pino({ name: 'server' });
+export const logger = logFn({ name: 'server' });
 
 app.listen(PORT, () =>
-    console.log(`polkabtc-stats listening at http://localhost:${PORT}`)
+    logger.info(`polkabtc-stats listening at http://localhost:${PORT}`)
 );
 
 if (MONITOR) {
     // process historical and incoming blocks and
     // propogate to the postgres database
     monitor().catch((error) => {
-        console.error(error);
+        logger.error(error);
         process.exit(-1);
     });
 }

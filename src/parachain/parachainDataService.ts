@@ -5,6 +5,9 @@ import pool from "../common/pool";
 import { Filter, filtersToWhere } from "../common/util";
 import {stripHexPrefix} from "@interlay/polkabtc";
 import {StatusUpdateColumns} from "../common/columnTypes";
+import logFn from '../common/logger'
+
+export const logger = logFn({ name: 'parachainDataService' });
 
 export async function getTotalStatusUpdates(): Promise<string> {
     try {
@@ -17,7 +20,7 @@ export async function getTotalStatusUpdates(): Promise<string> {
         `);
         return res.rows[0].count;
     } catch (e) {
-        console.error(e);
+        logger.error(e);
         throw e;
     }
 }
@@ -106,7 +109,7 @@ export async function getPagedStatusUpdates(
             forced: row.forced ? true : false,
         }));
     } catch (e) {
-        console.error(e);
+        logger.error(e);
         throw e;
     }
 }

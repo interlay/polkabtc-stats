@@ -3,10 +3,11 @@ import swaggerUi from "swagger-ui-express";
 import bodyParser from "body-parser";
 import pino from "express-pino-logger";
 import { RegisterRoutes } from "../build/routes";
+import logFn from './common/logger'
 
 export const app = express();
 
-app.use(pino())
+app.use(pino({ logger: logFn() }))
 app.use(
   bodyParser.urlencoded({
     extended: true,

@@ -11,9 +11,9 @@ import {
 import pool from "../common/pool";
 import { planckToDOT } from "@interlay/polkabtc";
 import { getPolkaBtc } from "../common/polkaBtc";
-import pino from "pino";
+import logFn from '../common/logger'
 
-export const logger = pino({ name: 'relayersDataService' });
+export const logger = logFn({ name: 'relayersDataService' });
 
 export async function getRecentDailyRelayers(
     daysBack: number

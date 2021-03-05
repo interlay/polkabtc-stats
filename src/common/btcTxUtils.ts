@@ -1,9 +1,9 @@
 import { getRepository } from "typeorm";
 import { RequestTxCache } from "../models/RequestTxCache";
 import { getPolkaBtc } from "./polkaBtc";
-import pino from "pino";
+import logFn from '../common/logger'
 
-export const logger = pino({ name: 'btcTxUtils' });
+export const logger = logFn({ name: 'btcTxUtils' });
 
 export type TxDetails = {
     txid: string;
