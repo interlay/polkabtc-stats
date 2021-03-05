@@ -8,6 +8,11 @@ import logFn from './common/logger'
 
 export const logger = logFn({ name: 'server' });
 
+// patch console.log and use pino to output structured log msgs
+const consoleLogger = logFn({name: 'consoleLog'})
+console.log = consoleLogger.info.bind(consoleLogger)
+console.error = consoleLogger.error.bind(consoleLogger)
+
 app.listen(PORT, () =>
     logger.info(`polkabtc-stats listening at http://localhost:${PORT}`)
 );
