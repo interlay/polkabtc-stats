@@ -4,6 +4,7 @@ import bodyParser from "body-parser";
 import pino from "express-pino-logger";
 import { RegisterRoutes } from "../build/routes";
 import logFn from './common/logger'
+import { VaultsController } from "./vaults/vaultDataController";
 
 export const app = express();
 
@@ -27,5 +28,22 @@ app.use("/docs", swaggerUi.serve, async (_req: ExRequest, res: ExResponse) => {
     swaggerUi.generateHTML(await import("../build/swagger.json"))
   );
 });
+
+// application is alive
+app.get("/health", (_, res) => {
+  res.send('ok')
+})
+
+// ready to serve HTTP traffic
+app.get("/ready", async (_, res) => {
+  try {
+    const vaults = await (new VaultsController()).getVaults()
+    if (vaults.length > 0) {
+      res.send('ok')
+    }
+  } catch (e) {
+    res.status(500).json(e).send();
+  }
+})
 
 RegisterRoutes(app);
