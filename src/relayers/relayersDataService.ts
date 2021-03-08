@@ -65,7 +65,9 @@ export async function getRelayersWithTrackRecord(
     }
 }
 
-export async function getAllRelayers(): Promise<RelayerData[]> {
+export async function getAllRelayers(
+    slaSince: number
+): Promise<RelayerData[]> {
     try {
         const res = await pool.query(`
             SELECT DISTINCT ON (reg.relayer_id)
@@ -82,6 +84,7 @@ export async function getAllRelayers(): Promise<RelayerData[]> {
                   (
                     SELECT relayer_id, array_agg(delta) lifetime_sla_change
                     FROM v_parachain_stakedrelayer_sla_update
+                    WHERE block_ts > $1
                     GROUP BY relayer_id
                   ) sla_change
                 USING (relayer_id)
@@ -117,7 +120,7 @@ export async function getAllRelayers(): Promise<RelayerData[]> {
                     ) latestblock
                 ON TRUE
                 ORDER BY reg.relayer_id, reg.block_number DESC
-            `);
+            `, [new Date(slaSince)]);
         const polkaBtc = await getPolkaBtc();
         return res.rows
             .filter((row) => !row.deregistered)
