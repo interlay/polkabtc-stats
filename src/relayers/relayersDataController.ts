@@ -20,6 +20,11 @@ export class RelayersController extends Controller {
         return getRelayersWithTrackRecord(minSla, minConsecutivePeriod);
     }
 
+    /**
+     * Retrieves a full list of relayers, along with the unbounded sum SLA scores
+     * after a given cutoff.
+     * @param slaSince A UNIX timestamp starting from which the SLA score will be summed.
+     **/
     @Get("")
     public async getRelayers(
         @Query() slaSince: number
