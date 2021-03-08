@@ -33,7 +33,9 @@ export class VaultsController extends Controller {
     }
 
     @Get("")
-    public async getVaults(): Promise<VaultData[]> {
-        return getAllVaults();
+    public async getVaults(
+        @Query() slaSince: number
+    ): Promise<VaultData[]> {
+        return getAllVaults(slaSince);
     }
 }

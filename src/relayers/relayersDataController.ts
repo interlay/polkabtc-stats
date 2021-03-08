@@ -21,7 +21,9 @@ export class RelayersController extends Controller {
     }
 
     @Get("")
-    public async getRelayers(): Promise<RelayerData[]> {
-        return getAllRelayers();
+    public async getRelayers(
+        @Query() slaSince: number
+    ): Promise<RelayerData[]> {
+        return getAllRelayers(slaSince);
     }
 }
