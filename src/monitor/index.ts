@@ -11,8 +11,8 @@ import { PolkaBTCAPI } from "@interlay/polkabtc";
 import { Connection, getRepository } from "typeorm";
 
 import { ParachainEvents } from "../models/ParachainEvents";
-import {getTypeORMConnection} from "../common/ormConnection";
-import {getPolkaBtc} from "../common/polkaBtc";
+import { getTypeORMConnection } from "../common/ormConnection";
+import { getPolkaBtc } from "../common/polkaBtc";
 
 function generateEvents(
     events: EventRecord[],
@@ -102,7 +102,7 @@ export default async function start() {
         .then(() => console.log("Finished backfill"));
 
     console.log("Subscribing to new blocks");
-    polkaBTC.api.rpc.chain.subscribeNewHeads(async (header) => {
+    polkaBTC.api.rpc.chain.subscribeFinalizedHeads(async (header) => {
         const blockNr = header.number.unwrap();
         try {
             insertBlockData(conn, polkaBTC, blockNr);
