@@ -10,14 +10,14 @@ export async function getPagedBlocks(
     sortBy: BlockColumns,
     sortAsc: boolean
 ): Promise<BtcBlock[]> {
-    const res = await pool.query(
-        `SELECT
+    const res = await pool.query(`
+        SELECT
             "event_data" ->> 0 AS height, "event_data" ->> 1 AS "hash", "block_ts" AS "relay_ts"
         FROM "v_parachain_data"
         WHERE "section"='btcRelay'::text AND "method"='StoreMainChainHeader'::text
         ORDER BY ${format.ident(sortBy)} ${sortAsc ? "ASC" : "DESC"}
-        LIMIT $1 OFFSET $2`,
-        [perPage, page * perPage]
+        LIMIT $1 OFFSET $2
+        `, [perPage, page * perPage]
     );
     return res.rows.map((row) => ({
         height: row.height,
