@@ -32,8 +32,15 @@ export class VaultsController extends Controller {
         return getVaultsWithTrackRecord(minSla, minConsecutivePeriod);
     }
 
+    /**
+     * Retrieves a full list of vaults, along with the unbounded sum SLA scores
+     * after a given cutoff.
+     * @param slaSince A UNIX timestamp starting from which the SLA score will be summed.
+     **/
     @Get("")
-    public async getVaults(): Promise<VaultData[]> {
-        return getAllVaults();
+    public async getVaults(
+        @Query() slaSince: number
+    ): Promise<VaultData[]> {
+        return getAllVaults(slaSince);
     }
 }

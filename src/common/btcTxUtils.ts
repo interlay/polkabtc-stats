@@ -1,3 +1,4 @@
+import {PolkaBTCAPI} from "@interlay/polkabtc";
 import { getRepository } from "typeorm";
 import { RequestTxCache } from "../models/RequestTxCache";
 import { getPolkaBtc } from "./polkaBtc";
@@ -28,6 +29,12 @@ const getStableConfs: () => Promise<number> = (() => {
     };
 })();
 
+async function getConfirmationsForTxid(polkabtc: PolkaBTCAPI, txid: string) {
+    return (
+        await polkabtc.btcCore.getTransactionStatus(txid)
+    ).confirmations + 1; // use Bitcoin Core confirmations count, rather than academic
+}
+
 export async function getTxDetailsForRequest(
     requestId: string,
     requestType: RequestType,
@@ -57,9 +64,7 @@ export async function getTxDetailsForRequest(
                       recipient,
                       amountBtc
                   ));
-            const confirmations = (
-                await polkabtc.btcCore.getTransactionStatus(txid)
-            ).confirmations;
+            const confirmations = await getConfirmationsForTxid(polkabtc, txid);
             const blockHeight =
                 (await polkabtc.btcCore.getTransactionBlockHeight(txid)) || 0;
 
@@ -81,9 +86,7 @@ export async function getTxDetailsForRequest(
     ) {
         // txid known, but tx not known to be confirmed, update confirmations
         try {
-            const confirmations = (
-                await polkabtc.btcCore.getTransactionStatus(savedDetails.txid)
-            ).confirmations;
+            const confirmations = await getConfirmationsForTxid(polkabtc, savedDetails.txid);
             const blockHeight =
                 (await polkabtc.btcCore.getTransactionBlockHeight(savedDetails.txid)) || 0;
 

@@ -105,7 +105,7 @@ export default async function start() {
         .then(() => logger.info("Finished backfill"));
 
     logger.info("Subscribing to new blocks");
-    polkaBTC.api.rpc.chain.subscribeNewHeads(async (header) => {
+    polkaBTC.api.rpc.chain.subscribeFinalizedHeads(async (header) => {
         const blockNr = header.number.unwrap();
         try {
             insertBlockData(conn, polkaBTC, blockNr);

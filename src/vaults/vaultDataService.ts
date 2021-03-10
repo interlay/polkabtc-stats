@@ -93,7 +93,9 @@ export async function getRecentDailyCollateral(
     }
 }
 
-export async function getAllVaults(): Promise<VaultData[]> {
+export async function getAllVaults(
+    slaSince: number
+): Promise<VaultData[]> {
     try {
         const res = await pool.query(`
         SELECT DISTINCT ON (reg.vault_id)
@@ -107,7 +109,7 @@ export async function getAllVaults(): Promise<VaultData[]> {
         (SELECT COUNT(DISTINCT redeem_id) count FROM v_parachain_redeem_cancel WHERE vault_id = reg.vault_id) AS cancel_redeem_count,
         (SELECT array_agg(delta) lifetime_sla_change
                 FROM v_parachain_vault_sla_update
-                WHERE vault_id = reg.vault_id
+                WHERE vault_id = reg.vault_id AND block_ts > $1
                 GROUP BY vault_id) AS lifetime_sla_change
         FROM (
             SELECT vault_id, collateral, block_number
@@ -117,7 +119,7 @@ export async function getAllVaults(): Promise<VaultData[]> {
             FROM v_parachain_vault_collateral
         ) reg
         ORDER BY reg.vault_id, reg.block_number DESC
-        `);
+        `, [new Date(slaSince)]);
         const polkaBtc = await getPolkaBtc();
         return res.rows.map((row) => ({
             id: row.vault_id,
