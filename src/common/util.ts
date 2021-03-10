@@ -6,6 +6,7 @@ import Big from "big.js";
 import { Colmuns } from "./columnTypes";
 import { decodeFixedPointType } from "@interlay/polkabtc";
 import { ApiPromise } from "@polkadot/api";
+import { SignedFixedPoint } from "@interlay/polkabtc/build/interfaces";
 
 export const msInDay = 86400 * 1000;
 export const MAX_CONF =
@@ -76,7 +77,7 @@ export function hexStringFixedPointToBig(
     fixedPoint: string
 ): Big {
     const val = api.createType("FixedI128", fixedPoint);
-    return new Big(decodeFixedPointType(val));
+    return new Big(decodeFixedPointType(val as SignedFixedPoint));
 }
 
 export function getDurationAboveMinSla(
