@@ -2,6 +2,9 @@ import {PolkaBTCAPI} from "@interlay/polkabtc";
 import { getRepository } from "typeorm";
 import { RequestTxCache } from "../models/RequestTxCache";
 import { getPolkaBtc } from "./polkaBtc";
+import logFn from '../common/logger'
+
+export const logger = logFn({ name: 'btcTxUtils' });
 
 export type TxDetails = {
     txid: string;
@@ -43,7 +46,7 @@ export async function getTxDetailsForRequest(
     const polkabtc = await getPolkaBtc();
 
     const savedDetails = (
-        await getRepository(RequestTxCache).find({
+        await getRepository(RequestTxCache, "pg_replica").find({
             id: requestId,
             request_type: requestType,
         })
@@ -74,8 +77,7 @@ export async function getTxDetailsForRequest(
             });
             return { txid, blockHeight, confirmations };
         } catch (e) {
-            console.log(`Failed to get BTC tx data for ${requestId}:`);
-            console.log(e);
+            logger.warn({ err: e, requestId: requestId }, `Failed to get BTC tx data for ${requestId}`);
             return { txid: "", blockHeight: 0 };
         }
     } else if (
@@ -98,8 +100,7 @@ export async function getTxDetailsForRequest(
                 blockHeight,
             };
         } catch (e) {
-            console.log(`Failed to get BTC confirmations for ${requestId}:`);
-            console.log(e);
+            logger.warn({ err: e, requestId: requestId }, `Failed to get BTC confirmations for ${requestId}`);
             return { txid: savedDetails.txid, blockHeight: 0 };
         }
     } else {

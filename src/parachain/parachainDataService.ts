@@ -5,6 +5,9 @@ import pool from "../common/pool";
 import { Filter, filtersToWhere } from "../common/util";
 import {stripHexPrefix} from "@interlay/polkabtc";
 import {StatusUpdateColumns} from "../common/columnTypes";
+import logFn from '../common/logger'
+
+export const logger = logFn({ name: 'parachainDataService' });
 
 export async function getTotalStatusUpdates(): Promise<string> {
     try {
@@ -17,7 +20,7 @@ export async function getTotalStatusUpdates(): Promise<string> {
         `);
         return res.rows[0].count;
     } catch (e) {
-        console.error(e);
+        logger.error(e);
         throw e;
     }
 }
@@ -40,35 +43,13 @@ export async function getPagedStatusUpdates(
                 suggest.add_error,
                 suggest.remove_error,
                 suggest.btc_block_hash,
-                coalesce(yeas.count, 0) AS yeas,
-                coalesce(nays.count, 0) AS nays,
-                coalesce(exec.executed, FALSE) AS executed,
-                coalesce(rej.rejected, FALSE) AS rejected,
+                (SELECT COUNT(*) FROM v_parachain_status_vote WHERE approve = 'true' AND update_id = suggest.update_id GROUP BY update_id) AS yeas,
+                (SELECT COUNT(*) FROM v_parachain_status_vote WHERE approve = 'false' AND update_id = suggest.update_id GROUP BY update_id) AS nays,
+                coalesce((SELECT TRUE AS executed FROM "v_parachain_status_execute" WHERE update_id = suggest.update_id), FALSE) AS executed,
+                coalesce((SELECT TRUE AS rejected FROM "v_parachain_status_reject" WHERE update_id = suggest.update_id), FALSE) AS rejected,
                 FALSE AS forced
             FROM
                 "v_parachain_status_suggest" AS suggest
-                LEFT OUTER JOIN
-                    (SELECT
-                        update_id, TRUE AS executed
-                    FROM "v_parachain_status_execute")
-                AS exec USING (update_id)
-                LEFT OUTER JOIN
-                    (SELECT
-                        update_id, TRUE AS rejected
-                    FROM "v_parachain_status_reject")
-                AS rej USING (update_id)
-                LEFT OUTER JOIN
-                    (SELECT
-                        update_id, COUNT(*)
-                    FROM v_parachain_status_vote
-                    WHERE approve = 'true' GROUP BY update_id)
-                AS yeas USING (update_id)
-                LEFT OUTER JOIN
-                    (SELECT
-                        update_id, COUNT(*)
-                    FROM v_parachain_status_vote
-                    WHERE approve = 'false' GROUP BY update_id)
-                AS nays USING (update_id)
             UNION ALL
             SELECT
                 NULL AS update_id,
@@ -106,7 +87,7 @@ export async function getPagedStatusUpdates(
             forced: row.forced ? true : false,
         }));
     } catch (e) {
-        console.error(e);
+        logger.error(e);
         throw e;
     }
 }
