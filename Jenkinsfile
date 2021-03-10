@@ -50,6 +50,11 @@ pipeline {
         ansiColor('xterm')
     }
     stages {
+        stage('Build & test') {
+            steps {
+                sh 'yarn && yarn build'
+            }
+        }
         stage('Build docker image') {
           when {
               anyOf { 
