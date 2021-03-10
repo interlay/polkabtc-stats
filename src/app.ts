@@ -37,7 +37,7 @@ app.get("/health", (_, res) => {
 // ready to serve HTTP traffic
 app.get("/ready", async (_, res) => {
   try {
-    const vaults = await (new VaultsController()).getVaults()
+    const vaults = await (new VaultsController()).getVaults(1)
     if (vaults.length > 0) {
       res.send('ok')
     }
