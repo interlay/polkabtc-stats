@@ -27,9 +27,8 @@ const getStableConfs: () => Promise<number> = (() => {
 })();
 
 async function getConfirmationsForTxid(polkabtc: PolkaBTCAPI, txid: string) {
-    return (
-        await polkabtc.btcCore.getTransactionStatus(txid)
-    ).confirmations + 1; // use Bitcoin Core confirmations count, rather than academic
+    const txStatus = await polkabtc.btcCore.getTransactionStatus(txid);
+    return txStatus.confirmations;
 }
 
 export async function getTxDetailsForRequest(
@@ -50,17 +49,20 @@ export async function getTxDetailsForRequest(
     )[0];
     if (savedDetails === undefined) {
         // no details yet, fetch everything from esplora
+        if (requestType === RequestType.Redeem) {
+            console.log(`No details yet for ${requestId}`);
+        }
         try {
             const txid = await (useOpReturn
                 ? polkabtc.btcCore.getTxIdByOpReturn(
-                      requestId.substring(2),
-                      recipient,
-                      amountBtc
-                  )
+                    requestId.substring(2),
+                    recipient,
+                    amountBtc
+                )
                 : polkabtc.btcCore.getTxIdByRecipientAddress(
-                      recipient,
-                      amountBtc
-                  ));
+                    recipient,
+                    amountBtc
+                ));
             const confirmations = await getConfirmationsForTxid(polkabtc, txid);
             const blockHeight =
                 (await polkabtc.btcCore.getTransactionBlockHeight(txid)) || 0;
@@ -72,16 +74,24 @@ export async function getTxDetailsForRequest(
                 confirmations,
                 block_height: blockHeight,
             });
+            if (requestType === RequestType.Redeem) {
+                console.log(`Returning ${txid}, ${blockHeight}, ${confirmations}`);
+            }
             return { txid, blockHeight, confirmations };
         } catch (e) {
             console.log(`Failed to get BTC tx data for ${requestId}:`);
-            console.log(e);
+            if (requestType === RequestType.Redeem) {
+                console.log(`Returning txid "", blockHeight 0, no confirmations`);
+            }
             return { txid: "", blockHeight: 0 };
         }
     } else if (
         savedDetails.confirmations < stableConfs ||
         savedDetails.block_height === 0
     ) {
+        if (requestType === RequestType.Redeem) {
+            console.log(`Existing details yet for ${requestId}, but not fully confirmed yet`);
+        }
         // txid known, but tx not known to be confirmed, update confirmations
         try {
             const confirmations = await getConfirmationsForTxid(polkabtc, savedDetails.txid);
@@ -90,8 +100,12 @@ export async function getTxDetailsForRequest(
 
             getRepository(RequestTxCache).save({
                 ...savedDetails,
+                blockHeight,
                 confirmations,
             });
+            if (requestType === RequestType.Redeem) {
+                console.log(`Returning ${savedDetails.txid}, ${blockHeight}, ${confirmations}`);
+            }
             return {
                 txid: savedDetails.txid,
                 confirmations,
@@ -99,11 +113,19 @@ export async function getTxDetailsForRequest(
             };
         } catch (e) {
             console.log(`Failed to get BTC confirmations for ${requestId}:`);
-            console.log(e);
+            if (requestType === RequestType.Redeem) {
+                console.log(`Returning ${savedDetails.txid}, blockHeight 0, no confirmations`);
+            }
             return { txid: savedDetails.txid, blockHeight: 0 };
         }
     } else {
+        if (requestType === RequestType.Redeem) {
+            console.log(`Using only cache for ${requestId}`);
+        }
         // tx known confirmed, pass block_height to let client display confirmations
+        if (requestType === RequestType.Redeem) {
+            console.log(`Returning ${savedDetails.txid}, ${savedDetails.block_height}, no confirmations`);
+        }
         return {
             txid: savedDetails.txid,
             confirmations: undefined,
