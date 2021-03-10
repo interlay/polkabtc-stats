@@ -12,6 +12,9 @@ import {
 import { getTxDetailsForRequest, RequestType } from "../common/btcTxUtils";
 import {planckToDOT, satToBTC, stripHexPrefix} from "@interlay/polkabtc";
 import {RedeemColumns} from "../common/columnTypes";
+import logFn from '../common/logger'
+
+export const logger = logFn({ name: 'redeemDataService' });
 
 export async function getTotalSuccessfulRedeems(): Promise<string> {
     try {
@@ -20,7 +23,7 @@ export async function getTotalSuccessfulRedeems(): Promise<string> {
         );
         return res.rows[0].count;
     } catch (e) {
-        console.error(e);
+        logger.error(e);
         throw e;
     }
 }
@@ -32,7 +35,7 @@ export async function getTotalRedeems(): Promise<string> {
         );
         return res.rows[0].count;
     } catch (e) {
-        console.error(e);
+        logger.error(e);
         throw e;
     }
 }
@@ -48,7 +51,7 @@ export async function getTotalAmount(): Promise<string> {
                     USING (redeem_id)`);
         return res.rows[0].sum;
     } catch (e) {
-        console.error(e);
+        logger.error(e);
         throw e;
     }
 }
@@ -68,7 +71,7 @@ export async function getRecentDailyRedeems(
             .rows
             .map((row) => ({ date: row.date, sat: row.sat }));
     } catch (e) {
-        console.error(e);
+        logger.error(e);
         throw e;
     }
 }
@@ -143,8 +146,7 @@ export async function getPagedRedeems(
             })
         );
     } catch (e) {
-        console.error("[REDEEM] getPagedRedeems: uncaught error");
-        console.error(e);
+        logger.error({err: e}, "[REDEEM] getPagedRedeems: uncaught error");
         throw e;
     }
 }

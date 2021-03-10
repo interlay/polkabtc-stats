@@ -13,6 +13,9 @@ import pool from "../common/pool";
 import Big from "big.js";
 import { planckToDOT } from "@interlay/polkabtc";
 import { getPolkaBtc } from "../common/polkaBtc";
+import logFn from '../common/logger'
+
+export const logger = logFn({ name: 'vaultDataService' });
 
 export async function getRecentDailyVaults(
     daysBack: number
@@ -28,7 +31,7 @@ export async function getRecentDailyVaults(
             .rows
             .map((row) => ({ date: row.date, count: row.value }));
     } catch (e) {
-        console.error(e);
+        logger.error(e);
         throw e;
     }
 }
@@ -57,7 +60,7 @@ export async function getVaultsWithTrackRecord(
         }));
         return reducedRows.filter((row) => row.duration >= consecutiveTimespan);
     } catch (e) {
-        console.error(e);
+        logger.error(e);
         throw e;
     }
 }
@@ -85,7 +88,7 @@ export async function getRecentDailyCollateral(
             )
         ).map((row) => ({ date: row.date, amount: row.value }));
     } catch (e) {
-        console.error(e);
+        logger.error(e);
         throw e;
     }
 }
@@ -95,67 +98,27 @@ export async function getAllVaults(
 ): Promise<VaultData[]> {
     try {
         const res = await pool.query(`
-            SELECT DISTINCT ON (reg.vault_id)
-                reg.vault_id,
-                reg.block_number,
-                reg.collateral,
-                COALESCE(request_issue.count, 0) AS request_issue_count,
-                COALESCE(execute_issue.count, 0) AS execute_issue_count,
-                COALESCE(request_redeem.count, 0) AS request_redeem_count,
-                COALESCE(execute_redeem.count, 0) AS execute_redeem_count,
-                COALESCE(cancel_redeem.count, 0) AS cancel_redeem_count,
-                lifetime_sla_change AS lifetime_sla_change
-            FROM (
-                SELECT vault_id, collateral, block_number
-                FROM v_parachain_vault_registration
-                UNION
-                SELECT vault_id, total_collateral, block_number
-                FROM v_parachain_vault_collateral
-            ) reg
-            LEFT OUTER JOIN
-              (
-                SELECT vault_id, array_agg(delta) lifetime_sla_change
+        SELECT DISTINCT ON (reg.vault_id)
+        reg.vault_id,
+        reg.block_number,
+        reg.collateral,
+        (SELECT COUNT(DISTINCT issue_id) count FROM v_parachain_data_request_issue WHERE vault_id = reg.vault_id) AS request_issue_count,
+        (SELECT COUNT(DISTINCT issue_id) count FROM v_parachain_data_execute_issue WHERE vault_id = reg.vault_id) AS execute_issue_count,
+        (SELECT COUNT(DISTINCT redeem_id) count FROM v_parachain_redeem_request WHERE vault_id = reg.vault_id) AS request_redeem_count,
+        (SELECT COUNT(DISTINCT redeem_id) count FROM v_parachain_redeem_execute WHERE vault_id = reg.vault_id) AS execute_redeem_count,
+        (SELECT COUNT(DISTINCT redeem_id) count FROM v_parachain_redeem_cancel WHERE vault_id = reg.vault_id) AS cancel_redeem_count,
+        (SELECT array_agg(delta) lifetime_sla_change
                 FROM v_parachain_vault_sla_update
-                WHERE block_ts > $1
-                GROUP BY vault_id
-              ) sla_change
-            USING (vault_id)
-            LEFT OUTER JOIN
-              (
-                SELECT vault_id, COUNT(DISTINCT issue_id) count
-                FROM v_parachain_data_request_issue
-                GROUP BY vault_id, issue_id
-              ) request_issue
-            ON reg.vault_id = request_issue.vault_id
-            LEFT OUTER JOIN
-              (
-                SELECT vault_id, COUNT(DISTINCT issue_id) count
-                FROM v_parachain_data_execute_issue
-                GROUP BY vault_id, issue_id
-              ) execute_issue
-            ON reg.vault_id = execute_issue.vault_id
-            LEFT OUTER JOIN
-              (
-                SELECT vault_id, COUNT(DISTINCT redeem_id) count
-                FROM v_parachain_redeem_request
-                GROUP BY vault_id, redeem_id
-              ) request_redeem
-            ON reg.vault_id = request_redeem.vault_id
-            LEFT OUTER JOIN
-              (
-                SELECT vault_id, COUNT(DISTINCT redeem_id) count
-                FROM v_parachain_redeem_execute
-                GROUP BY vault_id, redeem_id
-              ) execute_redeem
-            ON reg.vault_id = execute_redeem.vault_id
-            LEFT OUTER JOIN
-              (
-                SELECT vault_id, COUNT(DISTINCT redeem_id) count
-                FROM v_parachain_redeem_cancel
-                GROUP BY vault_id, redeem_id
-              ) cancel_redeem
-            ON reg.vault_id = cancel_redeem.vault_id
-            ORDER BY reg.vault_id, reg.block_number DESC
+                WHERE vault_id = reg.vault_id AND block_ts > $1
+                GROUP BY vault_id) AS lifetime_sla_change
+        FROM (
+            SELECT vault_id, collateral, block_number
+            FROM v_parachain_vault_registration
+            UNION
+            SELECT vault_id, total_collateral, block_number
+            FROM v_parachain_vault_collateral
+        ) reg
+        ORDER BY reg.vault_id, reg.block_number DESC
         `, [new Date(slaSince)]);
         const polkaBtc = await getPolkaBtc();
         return res.rows.map((row) => ({
@@ -168,17 +131,17 @@ export async function getAllVaults(
             cancel_redeem_count: row.cancel_redeem_count,
             lifetime_sla: row.lifetime_sla_change
                 ? row.lifetime_sla_change.reduce(
-                      (acc: Big, encodedDelta: string) =>
-                          hexStringFixedPointToBig(
-                              polkaBtc.api,
-                              encodedDelta
-                          ).add(acc),
-                      new Big(0)
-                  )
+                    (acc: Big, encodedDelta: string) =>
+                        hexStringFixedPointToBig(
+                            polkaBtc.api,
+                            encodedDelta
+                        ).add(acc),
+                    new Big(0)
+                )
                 : 0,
         }));
     } catch (e) {
-        console.error(e);
+        logger.error(e);
         throw e;
     }
 }

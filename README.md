@@ -31,6 +31,8 @@ Anybody can freely host their own instance of this database and use it to serve 
 
 *For the current instructions on running against a local parachain alongside the monitoring service, see the *Testing* section below.*
 
+**Prerequisite:** As the pg-native driver is used for the database, you need to ensure `libpq` is installed locally; on some systems, this may require installing the development version of relevant postgresql packages in addition to postgresql itself (e.g. `libpq-dev` or `postgresql-libs-devel`). See [the NPM page](https://www.npmjs.com/package/pg-native) for more details.
+
 Ensure the proper environment variables for the PostgreSQL connection are set, e.g.:
 
 ```shell

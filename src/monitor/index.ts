@@ -11,8 +11,11 @@ import { PolkaBTCAPI } from "@interlay/polkabtc";
 import { Connection, getRepository } from "typeorm";
 
 import { ParachainEvents } from "../models/ParachainEvents";
-import { getTypeORMConnection } from "../common/ormConnection";
-import { getPolkaBtc } from "../common/polkaBtc";
+import {getTypeORMConnection} from "../common/ormConnection";
+import {getPolkaBtc} from "../common/polkaBtc";
+import logFn from '../common/logger'
+
+export const logger = logFn({ name: 'monitor' });
 
 function generateEvents(
     events: EventRecord[],
@@ -49,7 +52,7 @@ async function insertBlockData(
 
     const events = await polkaBTC.api.query.system.events.at(hash);
 
-    console.log(`Processing block ${blockNr} ${hash}`);
+    logger.info({ blockNr, hash }, `Processing block ${blockNr} ${hash}`);
 
     const promises = [];
     for (let ev of generateEvents(events.toArray(), block, timestamp)) {
@@ -86,7 +89,7 @@ export default async function start() {
         await polkaBTC.api.rpc.chain.getHeader()
     ).number.toNumber();
 
-    console.log(
+    logger.info(
         `Running backfill from block ${lastDbBlock} to ${lastChainBlock}`
     );
 
@@ -99,15 +102,15 @@ export default async function start() {
                 (blockNr as unknown) as BlockNumber
             );
         })
-        .then(() => console.log("Finished backfill"));
+        .then(() => logger.info("Finished backfill"));
 
-    console.log("Subscribing to new blocks");
+    logger.info("Subscribing to new blocks");
     polkaBTC.api.rpc.chain.subscribeFinalizedHeads(async (header) => {
         const blockNr = header.number.unwrap();
         try {
             insertBlockData(conn, polkaBTC, blockNr);
         } catch (error) {
-            console.error(error);
+            logger.error(error);
             await conn.close();
         }
     });

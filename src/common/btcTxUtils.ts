@@ -2,6 +2,9 @@ import {PolkaBTCAPI} from "@interlay/polkabtc";
 import { getRepository } from "typeorm";
 import { RequestTxCache } from "../models/RequestTxCache";
 import { getPolkaBtc } from "./polkaBtc";
+import logFn from '../common/logger'
+
+export const logger = logFn({ name: 'btcTxUtils' });
 
 export type TxDetails = {
     txid: string;
@@ -42,16 +45,14 @@ export async function getTxDetailsForRequest(
     const polkabtc = await getPolkaBtc();
 
     const savedDetails = (
-        await getRepository(RequestTxCache).find({
+        await getRepository(RequestTxCache, "pg_replica").find({
             id: requestId,
             request_type: requestType,
         })
     )[0];
     if (savedDetails === undefined) {
         // no details yet, fetch everything from esplora
-        if (requestType === RequestType.Redeem) {
-            console.log(`No details yet for ${requestId}`);
-        }
+        logger.debug(`No BTC details yet for ${requestId} (type ${requestType})`);
         try {
             const txid = await (useOpReturn
                 ? polkabtc.btcCore.getTxIdByOpReturn(
@@ -74,25 +75,19 @@ export async function getTxDetailsForRequest(
                 confirmations,
                 block_height: blockHeight,
             });
-            if (requestType === RequestType.Redeem) {
-                console.log(`Returning ${txid}, ${blockHeight}, ${confirmations}`);
-            }
+            logger.trace(`For request ${requestId}, returning ${txid}, ${blockHeight}, ${confirmations}`);
             return { txid, blockHeight, confirmations };
         } catch (e) {
-            console.log(`Failed to get BTC tx data for ${requestId}:`);
-            if (requestType === RequestType.Redeem) {
-                console.log(`Returning txid "", blockHeight 0, no confirmations`);
-            }
+            logger.trace(`For request ${requestId}, returning txid "", blockHeight 0, no confirmations`);
+            logger.info({ err: e, requestId: requestId }, `Failed to get BTC tx data for ${requestId} (probably no tx has been broadcast yet)`);
             return { txid: "", blockHeight: 0 };
         }
     } else if (
         savedDetails.confirmations < stableConfs ||
         savedDetails.block_height === 0
     ) {
-        if (requestType === RequestType.Redeem) {
-            console.log(`Existing details yet for ${requestId}, but not fully confirmed yet`);
-        }
         // txid known, but tx not known to be confirmed, update confirmations
+        logger.debug(`Existing details found for ${requestId}, but confirmations not final yet`);
         try {
             const confirmations = await getConfirmationsForTxid(polkabtc, savedDetails.txid);
             const blockHeight =
@@ -103,29 +98,21 @@ export async function getTxDetailsForRequest(
                 blockHeight,
                 confirmations,
             });
-            if (requestType === RequestType.Redeem) {
-                console.log(`Returning ${savedDetails.txid}, ${blockHeight}, ${confirmations}`);
-            }
+            logger.trace(`For request ${requestId}, returning ${savedDetails.txid}, ${blockHeight}, ${confirmations}`);
             return {
                 txid: savedDetails.txid,
                 confirmations,
                 blockHeight,
             };
         } catch (e) {
-            console.log(`Failed to get BTC confirmations for ${requestId}:`);
-            if (requestType === RequestType.Redeem) {
-                console.log(`Returning ${savedDetails.txid}, blockHeight 0, no confirmations`);
-            }
+            logger.trace(`For request ${requestId}, returning ${savedDetails.txid}, blockHeight 0, no confirmations`);
+            logger.warn({ err: e, requestId: requestId }, `Failed to get BTC confirmations for ${requestId} (but tx should already exist with id: ${savedDetails.txid}`);
             return { txid: savedDetails.txid, blockHeight: 0 };
         }
     } else {
-        if (requestType === RequestType.Redeem) {
-            console.log(`Using only cache for ${requestId}`);
-        }
+        logger.debug(`Using only cached BTC details for ${requestId} as tx is securely confirmed`);
         // tx known confirmed, pass block_height to let client display confirmations
-        if (requestType === RequestType.Redeem) {
-            console.log(`Returning ${savedDetails.txid}, ${savedDetails.block_height}, no confirmations`);
-        }
+        logger.trace(`For request ${requestId}, returning ${savedDetails.txid}, ${savedDetails.block_height}, no confirmations`);
         return {
             txid: savedDetails.txid,
             confirmations: undefined,
