@@ -79,7 +79,9 @@ export async function getAllRelayers(
                 COALESCE(deregistered, FALSE) deregistered,
                 COALESCE(slashed, FALSE) slashed,
                 maturity::Integer < latestblock.block_number bonded,
-                COALESCE(store.count, 0) AS block_count,
+                (SELECT COUNT(DISTINCT bitcoin_hash) count
+                    FROM v_parachain_stakedrelayer_store
+                    WHERE relayer_id = reg.relayer_id AND block_ts > $1) AS block_count,
                 lifetime_sla_change
             FROM
                 v_parachain_stakedrelayer_register reg
@@ -107,13 +109,6 @@ export async function getAllRelayers(
                         ORDER BY relayer_id
                     ) slash
                 ON reg.relayer_id = slash.relayer_id
-                LEFT OUTER JOIN
-                    (
-                        SELECT relayer_id, COUNT(DISTINCT bitcoin_hash) count
-                        FROM v_parachain_stakedrelayer_store
-                        GROUP BY relayer_id
-                    ) store
-                ON reg.relayer_id = store.relayer_id
                 LEFT OUTER JOIN
                     (
                         SELECT block_number
