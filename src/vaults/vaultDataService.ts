@@ -102,11 +102,11 @@ export async function getAllVaults(
         reg.vault_id,
         reg.block_number,
         reg.collateral,
-        (SELECT COUNT(DISTINCT issue_id) count FROM v_parachain_data_request_issue WHERE vault_id = reg.vault_id) AS request_issue_count,
-        (SELECT COUNT(DISTINCT issue_id) count FROM v_parachain_data_execute_issue WHERE vault_id = reg.vault_id) AS execute_issue_count,
-        (SELECT COUNT(DISTINCT redeem_id) count FROM v_parachain_redeem_request WHERE vault_id = reg.vault_id) AS request_redeem_count,
-        (SELECT COUNT(DISTINCT redeem_id) count FROM v_parachain_redeem_execute WHERE vault_id = reg.vault_id) AS execute_redeem_count,
-        (SELECT COUNT(DISTINCT redeem_id) count FROM v_parachain_redeem_cancel WHERE vault_id = reg.vault_id) AS cancel_redeem_count,
+        (SELECT COUNT(DISTINCT issue_id) count FROM v_parachain_data_request_issue WHERE vault_id = reg.vault_id AND block_ts > $1) AS request_issue_count,
+        (SELECT COUNT(DISTINCT issue_id) count FROM v_parachain_data_execute_issue WHERE vault_id = reg.vault_id AND block_ts > $1) AS execute_issue_count,
+        (SELECT COUNT(DISTINCT redeem_id) count FROM v_parachain_redeem_request WHERE vault_id = reg.vault_id AND block_ts > $1) AS request_redeem_count,
+        (SELECT COUNT(DISTINCT redeem_id) count FROM v_parachain_redeem_execute WHERE vault_id = reg.vault_id AND block_ts > $1) AS execute_redeem_count,
+        (SELECT COUNT(DISTINCT redeem_id) count FROM v_parachain_redeem_cancel WHERE vault_id = reg.vault_id AND block_ts > $1) AS cancel_redeem_count,
         (SELECT array_agg(delta) lifetime_sla_change
                 FROM v_parachain_vault_sla_update
                 WHERE vault_id = reg.vault_id AND block_ts > $1
