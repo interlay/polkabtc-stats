@@ -7,16 +7,16 @@ import {
 import {
     getDurationAboveMinSla,
     hexStringFixedPointToBig,
-    runPerDayQuery
+    runPerDayQuery,
 } from "../common/util";
 import pool from "../common/pool";
 import Big from "big.js";
 import { planckToDOT } from "@interlay/polkabtc";
 import { getPolkaBtc } from "../common/polkaBtc";
-import logFn from '../common/logger'
-import { VaultStats } from './vaultModels';
+import logFn from "../common/logger";
+import { VaultStats } from "./vaultModels";
 
-export const logger = logFn({ name: 'vaultDataService' });
+export const logger = logFn({ name: "vaultDataService" });
 
 export async function getVaultStats(): Promise<VaultStats> {
     try {
@@ -25,29 +25,59 @@ export async function getVaultStats(): Promise<VaultStats> {
                 (SELECT COUNT(*) FROM v_parachain_vault_registration) total_registered,
                 (SELECT COUNT(DISTINCT vault_id) FROM v_parachain_vault_theft) total_thefts,
                 (SELECT COUNT(*) FROM v_parachain_vault_theft) total_thieves,
-                SUM(collateral),
+                (SELECT COUNT(*) FROM v_parachain_vault_liquidation) total_liquidations,
+                (SELECT COALESCE(SUM(issued_btc::BIGINT), 0) FROM v_parachain_vault_liquidation) btc_liquidated,
+                (SELECT COALESCE(SUM(collateral_dot::BIGINT), 0) FROM v_parachain_vault_liquidation) dot_liquidated,
+                (SELECT issued - redeemed FROM
+                    (SELECT COALESCE (SUM(ex.amount_btc::BIGINT - req.fee_polkabtc::BIGINT), 0) issued
+                        FROM v_parachain_data_execute_issue ex
+                        JOIN v_parachain_data_request_issue req
+                        USING (issue_id)
+                    ) iss,
+                    (SELECT COALESCE(SUM(amount_polka_btc::BIGINT - fee_polkabtc::BIGINT), 0) redeemed
+                        FROM v_parachain_redeem_request
+                        LEFT OUTER JOIN v_parachain_redeem_cancel USING (redeem_id)
+                        WHERE reimbursed IS NULL OR reimbursed = 'true')
+                    red) total_tokens,
+                COALESCE(SUM(collateral), 0) sum,
                 MIN(collateral),
                 MAX(collateral),
                 percentile_cont(ARRAY[0.25, 0.5, 0.75]) WITHIN GROUP (ORDER BY collateral) percentiles,
                 stddev_pop(collateral) stddev
+            FROM
+            (SELECT DISTINCT ON (vault_id) collateral::BIGINT
                 FROM
-                (SELECT DISTINCT ON (vault_id) collateral::BIGINT
-                    FROM
-                    (SELECT vault_id, collateral, block_ts
-                        FROM v_parachain_vault_registration
-                    UNION SELECT vault_id, total_collateral AS collateral, block_ts
-                    FROM v_parachain_vault_collateral) c
-                ORDER BY vault_id, block_ts DESC) col
+                (SELECT vault_id, collateral, block_ts
+                    FROM v_parachain_vault_registration
+                UNION SELECT vault_id, total_collateral AS collateral, block_ts
+                FROM v_parachain_vault_collateral) c
+            ORDER BY vault_id, block_ts DESC) col
         `);
         const row = res.rows[0];
+        const registrations = new Big(row.total_registered);
+        const sum = new Big(planckToDOT(row.sum));
+        const totalTokens = new Big(row.total_tokens);
         return {
-            total: row.total_registered,
+            total: registrations.toNumber(),
             thefts: row.total_thefts,
             thiefVaults: row.total_thieves,
+            liquidations: {
+                count: row.total_liquidations,
+                btcFraction: totalTokens.eq(0)
+                    ? 0
+                    : new Big(row.btc_liquidated).div(totalTokens).toNumber(),
+                dotFraction: sum.eq(0)
+                    ? 0
+                    : new Big(planckToDOT(row.dot_liquidated))
+                          .div(sum)
+                          .toNumber(),
+            },
             collateralDistribution: {
                 min: planckToDOT(row.min),
                 max: planckToDOT(row.max),
-                mean: new Big(planckToDOT(row.sum)).div(row.total_registered).toString(),
+                mean: registrations.eq(0)
+                    ? "0"
+                    : sum.div(registrations).toString(),
                 stddev: planckToDOT(row.stddev),
                 percentiles: {
                     quarter: planckToDOT(row.percentiles[0]),
@@ -66,15 +96,18 @@ export async function getRecentDailyVaults(
     daysBack: number
 ): Promise<VaultCountTimeData[]> {
     try {
-        return (await pool.query(`
+        return (
+            await pool.query(
+                `
         SELECT extract(epoch from d.date) * 1000 as date, count(v.vault_id) as value
         FROM (SELECT (current_date - offs) AS date FROM generate_series(0, $1, 1) AS offs) d
         LEFT OUTER JOIN v_parachain_vault_registration v
         ON d.date >= v.block_ts::date
         GROUP BY 1
-        ORDER BY 1 ASC`, [daysBack]))
-            .rows
-            .map((row) => ({ date: row.date, count: row.value }));
+        ORDER BY 1 ASC`,
+                [daysBack]
+            )
+        ).rows.map((row) => ({ date: row.date, count: row.value }));
     } catch (e) {
         logger.error(e);
         throw e;
@@ -138,11 +171,10 @@ export async function getRecentDailyCollateral(
     }
 }
 
-export async function getAllVaults(
-    slaSince: number
-): Promise<VaultData[]> {
+export async function getAllVaults(slaSince: number): Promise<VaultData[]> {
     try {
-        const res = await pool.query(`
+        const res = await pool.query(
+            `
         SELECT DISTINCT ON (reg.vault_id)
         reg.vault_id,
         reg.block_number,
@@ -164,7 +196,9 @@ export async function getAllVaults(
             FROM v_parachain_vault_collateral
         ) reg
         ORDER BY reg.vault_id, reg.block_number DESC
-        `, [new Date(slaSince)]);
+        `,
+            [new Date(slaSince)]
+        );
         const polkaBtc = await getPolkaBtc();
         return res.rows.map((row) => ({
             id: row.vault_id,
@@ -176,13 +210,13 @@ export async function getAllVaults(
             cancel_redeem_count: row.cancel_redeem_count,
             lifetime_sla: row.lifetime_sla_change
                 ? row.lifetime_sla_change.reduce(
-                    (acc: Big, encodedDelta: string) =>
-                        hexStringFixedPointToBig(
-                            polkaBtc.api,
-                            encodedDelta
-                        ).add(acc),
-                    new Big(0)
-                )
+                      (acc: Big, encodedDelta: string) =>
+                          hexStringFixedPointToBig(
+                              polkaBtc.api,
+                              encodedDelta
+                          ).add(acc),
+                      new Big(0)
+                  )
                 : 0,
         }));
     } catch (e) {

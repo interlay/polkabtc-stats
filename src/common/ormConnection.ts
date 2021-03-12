@@ -44,7 +44,7 @@ import {
 import { ENABLE_PG_SSL, SYNC_DB_SCHEMA, PGREPLICAHOST } from "./constants";
 
 const connectionPromise: Promise<Connection> = createConnection({
-    name: 'default',
+    name: "default",
     type: "postgres",
     synchronize: SYNC_DB_SCHEMA,
     extra: ENABLE_PG_SSL ? { ssl: { rejectUnauthorized: false } } : {},
@@ -91,7 +91,7 @@ const connectionPromise: Promise<Connection> = createConnection({
         VParachainRefundExecute,
         RequestTxCache,
     ],
-})
+});
 
 // create connection to the read-only replica
 createConnection({
@@ -142,11 +142,10 @@ createConnection({
         VParachainRefundRequest,
         VParachainRefundExecute,
         RequestTxCache,
-    ]
-})
-
+    ],
+});
 
 export const getTypeORMConnection: () => Promise<Connection> = async () => {
     await connectionPromise; // make sure promise is resolved to prevent race condition
-    return getConnection('default');
+    return getConnection("default");
 };

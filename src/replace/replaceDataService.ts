@@ -1,6 +1,6 @@
 import pool from "../common/pool";
 import logFn from "../common/logger";
-import {ReplaceStats} from "./replaceModels";
+import { ReplaceStats } from "./replaceModels";
 
 export const logger = logFn({ name: "redeemDataService" });
 
@@ -13,7 +13,6 @@ export async function getReplaceStats(): Promise<ReplaceStats> {
                 (SELECT COUNT(*) FROM v_parachain_replace_auction) auctioned,
                 (SELECT COUNT(*) FROM v_parachain_replace_cancel) cancelled
         `);
-        console.log(res.rows);
         const row = res.rows[0];
         return {
             total: row.total,

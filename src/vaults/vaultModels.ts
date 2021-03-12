@@ -31,5 +31,10 @@ export interface VaultStats {
     total: number;
     thefts: number;
     thiefVaults: number;
+    liquidations: {
+        count: number;
+        btcFraction: number;
+        dotFraction: number;
+    },
     collateralDistribution: DistributionStats;
 }

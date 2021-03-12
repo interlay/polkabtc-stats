@@ -1,13 +1,52 @@
 import format from "pg-format";
-import { ParachainStatusUpdate } from "./parachainModels";
+import Big from "big.js";
+import { ParachainStats, ParachainStatusUpdate } from "./parachainModels";
 
 import pool from "../common/pool";
 import { Filter, filtersToWhere } from "../common/util";
-import {stripHexPrefix} from "@interlay/polkabtc";
-import {StatusUpdateColumns} from "../common/columnTypes";
-import logFn from '../common/logger'
+import { stripHexPrefix } from "@interlay/polkabtc";
+import { StatusUpdateColumns } from "../common/columnTypes";
+import logFn from "../common/logger";
 
-export const logger = logFn({ name: 'parachainDataService' });
+export const logger = logFn({ name: "parachainDataService" });
+
+export async function getStatusStats(): Promise<ParachainStats> {
+    try {
+        const res = await pool.query(`
+            SELECT
+                (SELECT COUNT(*) FROM v_parachain_stakedrelayer_register) registrations,
+                (SELECT COUNT(*) FROM v_parachain_stakedrelayer_deregister) deregistrations,
+                (SELECT COUNT(*) FROM v_parachain_status_suggest) suggested_updates,
+                (SELECT COUNT(*) FROM v_parachain_status_execute) passed_updates,
+                (SELECT COUNT(*) FROM v_parachain_status_reject) rejected_updates
+        `);
+        const row = res.rows[0];
+        const totalUpdates = new Big(row.suggested_updates);
+        return {
+            totalStakedRelayers: new Big(row.registrations)
+                .sub(row.deregistrations)
+                .toNumber(),
+            totalUpdateProposals: totalUpdates.toNumber(),
+            declined: {
+                count: row.rejected_updates,
+                fractionOfTotal: totalUpdates.eq(0)
+                    ? 0
+                    : new Big(row.rejected_updates)
+                          .div(totalUpdates)
+                          .toNumber(),
+            },
+            passed: {
+                count: row.passed_updates,
+                fractionOfTotal: totalUpdates.eq(0)
+                    ? 0
+                    : new Big(row.passed_updates).div(totalUpdates).toNumber(),
+            },
+        };
+    } catch (e) {
+        logger.error(e);
+        throw e;
+    }
+}
 
 export async function getTotalStatusUpdates(): Promise<string> {
     try {

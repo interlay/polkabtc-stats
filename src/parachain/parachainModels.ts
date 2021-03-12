@@ -10,4 +10,17 @@ export interface ParachainStatusUpdate {
     executed: boolean;
     rejected: boolean;
     forced: boolean;
-};
+}
+
+export interface ParachainStats {
+    totalStakedRelayers: number;
+    totalUpdateProposals: number;
+    declined: {
+        count: number;
+        fractionOfTotal: number;
+    };
+    passed: {
+        count: number;
+        fractionOfTotal: number;
+    };
+}

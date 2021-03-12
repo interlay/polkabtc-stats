@@ -22,7 +22,7 @@ export async function getIssueStats(): Promise<IssueStats> {
             SELECT
                 (SELECT COUNT(*) FROM v_parachain_data_request_issue) total,
                 COUNT(*) successful,
-                SUM(issued),
+                COALESCE(SUM(issued), 0) sum,
                 MIN(issued),
                 MAX(issued),
                 percentile_cont(ARRAY[0.25, 0.5, 0.75]) WITHIN GROUP (ORDER BY issued) percentiles,
@@ -34,16 +34,18 @@ export async function getIssueStats(): Promise<IssueStats> {
                     USING (issue_id)
                 ) iss
         `);
-        console.log(res.rows);
         const row = res.rows[0];
+        const successful = new Big(row.successful);
         return {
             totalRequests: row.total,
-            totalSuccesses: row.successful,
+            totalSuccesses: successful.toNumber(),
             totalPolkaBTCIssued: satToBTC(row.sum),
             averageRequest: {
                 min: satToBTC(row.min),
                 max: satToBTC(row.max),
-                mean: new Big(satToBTC(row.sum)).div(row.successful).toString(),
+                mean: successful.eq(0)
+                    ? "0"
+                    : new Big(satToBTC(row.sum)).div(successful).toString(),
                 stddev: satToBTC(row.stddev),
                 percentiles: {
                     quarter: satToBTC(row.percentiles[0]),
