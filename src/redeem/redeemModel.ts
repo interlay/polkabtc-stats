@@ -22,6 +22,10 @@ export interface Redeem {
 export interface RedeemStats {
     totalRequests: number;
     totalSuccesses: number;
+    totalPremium: number;
+    premiumFraction: number;
+    totalLiquidated: number;
+    liquidatedFraction: number;
     totalPolkaBTCRedeemed: string;
     averageRequest: DistributionStats;
 }

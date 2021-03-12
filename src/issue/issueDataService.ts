@@ -28,7 +28,7 @@ export async function getIssueStats(): Promise<IssueStats> {
                 percentile_cont(ARRAY[0.25, 0.5, 0.75]) WITHIN GROUP (ORDER BY issued) percentiles,
                 stddev_pop(issued) stddev
                 FROM
-                (SELECT ex.amount_btc::INTEGER - req.fee_polkabtc::INTEGER issued
+                (SELECT ex.amount_btc::BIGINT - req.fee_polkabtc::BIGINT issued
                     FROM v_parachain_data_execute_issue ex
                     JOIN v_parachain_data_request_issue req
                     USING (issue_id)

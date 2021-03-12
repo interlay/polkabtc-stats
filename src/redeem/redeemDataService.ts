@@ -21,6 +21,8 @@ export async function getRedeemStats(): Promise<RedeemStats> {
         const res = await pool.query(`
             SELECT
                 (SELECT COUNT(*) FROM v_parachain_redeem_request) total,
+                (SELECT COUNT(*) FROM v_parachain_redeem_request WHERE dot_premium::BIGINT != 0) total_premium,
+                (SELECT COUNT(*) FROM v_parachain_redeem_liquidate) total_liquidated,
                 COUNT(*) successful,
                 SUM(redeemed),
                 MIN(redeemed),
@@ -37,6 +39,10 @@ export async function getRedeemStats(): Promise<RedeemStats> {
         return {
             totalRequests: row.total,
             totalSuccesses: row.successful,
+            totalPremium: row.total_premium,
+            premiumFraction: new Big(row.total_premium).div(row.total).toNumber(),
+            totalLiquidated: row.total_liquidated,
+            liquidatedFraction: new Big(row.total_liquidated).div(row.total).toNumber(),
             totalPolkaBTCRedeemed: satToBTC(row.sum),
             averageRequest: {
                 min: satToBTC(row.min),

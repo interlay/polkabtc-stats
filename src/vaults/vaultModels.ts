@@ -1,3 +1,5 @@
+import { DistributionStats } from "../common/commonModels";
+
 export interface CollateralTimeData {
     date: number;
     amount: number;
@@ -23,4 +25,11 @@ export interface VaultSlaRanking {
     id: string;
     threshold: number;
     duration: number;
+}
+
+export interface VaultStats {
+    total: number;
+    thefts: number;
+    thiefVaults: number;
+    collateralDistribution: DistributionStats;
 }

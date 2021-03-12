@@ -14,8 +14,53 @@ import Big from "big.js";
 import { planckToDOT } from "@interlay/polkabtc";
 import { getPolkaBtc } from "../common/polkaBtc";
 import logFn from '../common/logger'
+import { VaultStats } from './vaultModels';
 
 export const logger = logFn({ name: 'vaultDataService' });
+
+export async function getVaultStats(): Promise<VaultStats> {
+    try {
+        const res = await pool.query(`
+            SELECT
+                (SELECT COUNT(*) FROM v_parachain_vault_registration) total_registered,
+                (SELECT COUNT(DISTINCT vault_id) FROM v_parachain_vault_theft) total_thefts,
+                (SELECT COUNT(*) FROM v_parachain_vault_theft) total_thieves,
+                SUM(collateral),
+                MIN(collateral),
+                MAX(collateral),
+                percentile_cont(ARRAY[0.25, 0.5, 0.75]) WITHIN GROUP (ORDER BY collateral) percentiles,
+                stddev_pop(collateral) stddev
+                FROM
+                (SELECT DISTINCT ON (vault_id) collateral::BIGINT
+                    FROM
+                    (SELECT vault_id, collateral, block_ts
+                        FROM v_parachain_vault_registration
+                    UNION SELECT vault_id, total_collateral AS collateral, block_ts
+                    FROM v_parachain_vault_collateral) c
+                ORDER BY vault_id, block_ts DESC) col
+        `);
+        const row = res.rows[0];
+        return {
+            total: row.total_registered,
+            thefts: row.total_thefts,
+            thiefVaults: row.total_thieves,
+            collateralDistribution: {
+                min: planckToDOT(row.min),
+                max: planckToDOT(row.max),
+                mean: new Big(planckToDOT(row.sum)).div(row.total_registered).toString(),
+                stddev: planckToDOT(row.stddev),
+                percentiles: {
+                    quarter: planckToDOT(row.percentiles[0]),
+                    median: planckToDOT(row.percentiles[1]),
+                    threeQuarter: planckToDOT(row.percentiles[2]),
+                },
+            },
+        };
+    } catch (e) {
+        logger.error(e);
+        throw e;
+    }
+}
 
 export async function getRecentDailyVaults(
     daysBack: number
