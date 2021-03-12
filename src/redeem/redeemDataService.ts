@@ -1,7 +1,7 @@
 import format from "pg-format";
-import { Redeem } from "./redeemModel";
+import { Redeem, RedeemStats } from "./redeemModel";
 import { SatoshisTimeData } from "../common/commonModels";
-
+import Big from "big.js";
 import pool from "../common/pool";
 import {
     btcAddressToString,
@@ -10,12 +10,51 @@ import {
     filtersToWhere,
 } from "../common/util";
 import { getTxDetailsForRequest, RequestType } from "../common/btcTxUtils";
-import {planckToDOT, satToBTC, stripHexPrefix} from "@interlay/polkabtc";
-import {RedeemColumns} from "../common/columnTypes";
-import logFn from '../common/logger'
+import { planckToDOT, satToBTC, stripHexPrefix } from "@interlay/polkabtc";
+import { RedeemColumns } from "../common/columnTypes";
+import logFn from "../common/logger";
 
-export const logger = logFn({ name: 'redeemDataService' });
+export const logger = logFn({ name: "redeemDataService" });
 
+export async function getRedeemStats(): Promise<RedeemStats> {
+    try {
+        const res = await pool.query(`
+            SELECT
+                (SELECT COUNT(*) FROM v_parachain_redeem_request) total,
+                COUNT(*) successful,
+                SUM(redeemed),
+                MIN(redeemed),
+                MAX(redeemed),
+                percentile_cont(ARRAY[0.25, 0.5, 0.75]) WITHIN GROUP (ORDER BY redeemed) percentiles,
+                stddev_pop(redeemed) stddev
+                FROM
+                (SELECT amount_polka_btc::INTEGER - fee_polkabtc::INTEGER redeemed
+                    FROM v_parachain_redeem_execute ex
+                ) red
+        `);
+        console.log(res.rows);
+        const row = res.rows[0];
+        return {
+            totalRequests: row.total,
+            totalSuccesses: row.successful,
+            totalPolkaBTCRedeemed: satToBTC(row.sum),
+            averageRequest: {
+                min: satToBTC(row.min),
+                max: satToBTC(row.max),
+                mean: new Big(satToBTC(row.sum)).div(row.successful).toString(),
+                stddev: satToBTC(row.stddev),
+                percentiles: {
+                    quarter: satToBTC(row.percentiles[0]),
+                    median: satToBTC(row.percentiles[1]),
+                    threeQuarter: satToBTC(row.percentiles[2]),
+                },
+            },
+        };
+    } catch (e) {
+        logger.error(e);
+        throw e;
+    }
+}
 export async function getTotalSuccessfulRedeems(): Promise<string> {
     try {
         const res = await pool.query(
@@ -60,16 +99,19 @@ export async function getRecentDailyRedeems(
     daysBack: number
 ): Promise<SatoshisTimeData[]> {
     try {
-        return (await pool.query(`
+        return (
+            await pool.query(
+                `
         SELECT extract(epoch from d.date) * 1000 as date, coalesce(SUM(ex.amount_polka_btc::INTEGER), 0) AS sat
         FROM (SELECT (current_date - offs) AS date FROM generate_series(0, $1, 1) AS offs) d
         LEFT OUTER JOIN v_parachain_redeem_execute AS ex LEFT OUTER JOIN v_parachain_redeem_request AS req USING (redeem_id)
         ON d.date >= ex.block_ts::date
         GROUP BY 1
         ORDER BY 1 ASC
-            `, [daysBack]))
-            .rows
-            .map((row) => ({ date: row.date, sat: row.sat }));
+            `,
+                [daysBack]
+            )
+        ).rows.map((row) => ({ date: row.date, sat: row.sat }));
     } catch (e) {
         logger.error(e);
         throw e;
@@ -146,7 +188,7 @@ export async function getPagedRedeems(
             })
         );
     } catch (e) {
-        logger.error({err: e}, "[REDEEM] getPagedRedeems: uncaught error");
+        logger.error({ err: e }, "[REDEEM] getPagedRedeems: uncaught error");
         throw e;
     }
 }

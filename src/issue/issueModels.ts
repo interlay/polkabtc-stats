@@ -1,3 +1,5 @@
+import {DistributionStats} from "../common/commonModels";
+
 export interface Issue {
     id: string;
     amountBTC: string;
@@ -18,4 +20,11 @@ export interface Issue {
     requestedRefund: boolean;
     refundBtcAddress: string;
     refundAmountBTC: string;
+}
+
+export interface IssueStats {
+    totalRequests: number;
+    totalSuccesses: number;
+    totalPolkaBTCIssued: string;
+    averageRequest: DistributionStats;
 }
