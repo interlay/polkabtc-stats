@@ -36,27 +36,14 @@ export async function getStatusStats(): Promise<ParachainStats> {
                 stddev_pop(nays) stddev_n,
                 stddev_pop(counts) stddev_c
             FROM
-            (SELECT
-                (
-                    SELECT COALESCE(SUM(stake::BIGINT), 0) y
-                    FROM v_parachain_stakedrelayer_register
-                    JOIN (
-                        SELECT relayer AS relayer_id, update_id, 1 AS vote
-                        FROM v_parachain_status_vote WHERE approve='true'
-                    ) votes USING (relayer_id) GROUP BY update_id
-                ) yeas,
-                (
-                    SELECT COALESCE(SUM(stake::BIGINT), 0) n
-                    FROM v_parachain_stakedrelayer_register
-                    JOIN (
-                        SELECT relayer AS relayer_id, update_id, 1 AS vote
-                        FROM v_parachain_status_vote WHERE approve='false'
-                    ) votes USING (relayer_id) GROUP BY update_id
-                ) nays,
-                (
-                    SELECT COUNT(relayer) count
-                    FROM v_parachain_status_vote GROUP BY update_id
-                ) counts
+            (
+                SELECT SUM(yea) yeas, SUM(nay) nays, SUM(yea + nay) counts
+                FROM (
+                    SELECT 1 AS yea, update_id FROM v_parachain_status_vote WHERE approve = 'true'
+                ) y
+                JOIN (
+                    SELECT 1 AS nay, update_id FROM v_parachain_status_vote WHERE approve = 'false'
+                ) n USING (update_id) GROUP BY update_id
             ) votes
         `);
         const row = res.rows[0];
