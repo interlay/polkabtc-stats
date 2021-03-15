@@ -1,4 +1,5 @@
-import { Controller, Get, Route, Tags } from "tsoa";
+import {range} from "lodash";
+import { Controller, Get, Query, Route, Tags } from "tsoa";
 import { getIssueStats } from "../issue/issueDataService";
 import { IssueStats } from "../issue/issueModels";
 import { getStatusStats } from "../parachain/parachainDataService";
@@ -7,9 +8,9 @@ import { getRedeemStats } from "../redeem/redeemDataService";
 import { RedeemStats } from "../redeem/redeemModel";
 import { getReplaceStats } from "../replace/replaceDataService";
 import { ReplaceStats } from "../replace/replaceModels";
-import { getVaultStats } from "../vaults/vaultDataService";
+import { getVaultCollateralisationsAtTime, getVaultStats } from "../vaults/vaultDataService";
 import { VaultStats } from "../vaults/vaultModels";
-import { AccountStats, Report } from "./reportModels";
+import { AccountStats, CollateralisationsAtTime, Report } from "./reportModels";
 import { getAccountStats } from "./repotDataService";
 
 @Tags("stats")
@@ -33,6 +34,27 @@ export class ReportController extends Controller {
     @Get("vaultStats")
     public async getVaultStats(): Promise<VaultStats> {
         return getVaultStats();
+    }
+
+    @Get("vaultCollateralStats")
+    public async getVaultCollateralisationStatsAtTime(
+        @Query() timestamp: number
+    ): Promise<string[]> {
+        return getVaultCollateralisationsAtTime(timestamp);
+    }
+
+    @Get("recentVaultCollateralisations")
+    public async getRecentVaultCollateralisatonRates(
+    ): Promise<CollateralisationsAtTime[]> {
+        const now = Date.now();
+        const times = range(0, 14).map((day) => now - day * 86400 * 1000);
+        return Promise.all(times.map(async (timestamp) => {
+            const collateralisations = await getVaultCollateralisationsAtTime(timestamp);
+            return {
+                timestamp,
+                collateralisations,
+            };
+        }));
     }
 
     @Get("replaceStats")

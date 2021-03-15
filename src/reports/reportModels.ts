@@ -19,3 +19,8 @@ export interface Report {
     replace: ReplaceStats;
     statusUpdates: ParachainStats;
 }
+
+export interface CollateralisationsAtTime {
+    timestamp: number;
+    collateralisations: string[];
+}
