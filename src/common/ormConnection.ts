@@ -14,9 +14,12 @@ import {
     VParachainVaultCollateral,
     VParachainVaultIssueRedeem,
     VParachainVaultRegistration,
+    VParachainVaultTheft,
+    VParachainVaultLiquidation,
     VParachainRedeemCancel,
     VParachainRedeemExecute,
     VParachainRedeemRequest,
+    VParachainRedeemLiquidate,
     VParachainStakedrelayerRegister,
     VParachainStakedrelayerDeregister,
     VParachainStatusSuggest,
@@ -31,11 +34,17 @@ import {
     RequestTxCache,
     VParachainVaultSlaUpdate,
     VParachainStakedrelayerSlaUpdate,
+    VParachainReplaceAccept,
+    VParachainReplaceAuction,
+    VParachainReplaceCancel,
+    VParachainReplaceExecute,
+    VParachainReplaceRequest,
+    VParachainReplaceWithdraw,
 } from "../models/";
 import { ENABLE_PG_SSL, SYNC_DB_SCHEMA, PGREPLICAHOST } from "./constants";
 
 const connectionPromise: Promise<Connection> = createConnection({
-    name: 'default',
+    name: "default",
     type: "postgres",
     synchronize: SYNC_DB_SCHEMA,
     extra: ENABLE_PG_SSL ? { ssl: { rejectUnauthorized: false } } : {},
@@ -56,6 +65,14 @@ const connectionPromise: Promise<Connection> = createConnection({
         VParachainVaultSlaUpdate,
         VParachainVaultCollateral,
         VParachainVaultRegistration,
+        VParachainVaultTheft,
+        VParachainVaultLiquidation,
+        VParachainReplaceAccept,
+        VParachainReplaceAuction,
+        VParachainReplaceCancel,
+        VParachainReplaceExecute,
+        VParachainReplaceRequest,
+        VParachainReplaceWithdraw,
         VParachainStakedrelayerDeregister,
         VParachainStakedrelayerRegister,
         VParachainStakedrelayerSlash,
@@ -64,6 +81,7 @@ const connectionPromise: Promise<Connection> = createConnection({
         VParachainRedeemRequest,
         VParachainRedeemExecute,
         VParachainRedeemCancel,
+        VParachainRedeemLiquidate,
         VParachainStatusSuggest,
         VParachainStatusVote,
         VParachainStatusExecute,
@@ -73,7 +91,7 @@ const connectionPromise: Promise<Connection> = createConnection({
         VParachainRefundExecute,
         RequestTxCache,
     ],
-})
+});
 
 // create connection to the read-only replica
 createConnection({
@@ -99,6 +117,14 @@ createConnection({
         VParachainVaultSlaUpdate,
         VParachainVaultCollateral,
         VParachainVaultRegistration,
+        VParachainVaultTheft,
+        VParachainVaultLiquidation,
+        VParachainReplaceAccept,
+        VParachainReplaceAuction,
+        VParachainReplaceCancel,
+        VParachainReplaceExecute,
+        VParachainReplaceRequest,
+        VParachainReplaceWithdraw,
         VParachainStakedrelayerDeregister,
         VParachainStakedrelayerRegister,
         VParachainStakedrelayerSlash,
@@ -107,6 +133,7 @@ createConnection({
         VParachainRedeemRequest,
         VParachainRedeemExecute,
         VParachainRedeemCancel,
+        VParachainRedeemLiquidate,
         VParachainStatusSuggest,
         VParachainStatusVote,
         VParachainStatusExecute,
@@ -115,11 +142,10 @@ createConnection({
         VParachainRefundRequest,
         VParachainRefundExecute,
         RequestTxCache,
-    ]
-})
-
+    ],
+});
 
 export const getTypeORMConnection: () => Promise<Connection> = async () => {
     await connectionPromise; // make sure promise is resolved to prevent race condition
-    return getConnection('default');
+    return getConnection("default");
 };

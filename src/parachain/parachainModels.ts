@@ -1,3 +1,5 @@
+import {DistributionStats} from "../common/commonModels";
+
 export interface ParachainStatusUpdate {
     id: string;
     timestamp: string;
@@ -10,4 +12,20 @@ export interface ParachainStatusUpdate {
     executed: boolean;
     rejected: boolean;
     forced: boolean;
-};
+}
+
+export interface ParachainStats {
+    totalStakedRelayers: number;
+    totalUpdateProposals: number;
+    declined: {
+        count: number;
+        fractionOfTotal: number;
+    };
+    passed: {
+        count: number;
+        fractionOfTotal: number;
+    };
+    voteCounts: DistributionStats;
+    ayeVotes: DistributionStats;
+    nayVotes: DistributionStats;
+}

@@ -1,3 +1,5 @@
+import {DistributionStats} from "../common/commonModels";
+
 export interface Redeem {
     id: string;
     requester: string;
@@ -16,3 +18,14 @@ export interface Redeem {
     reimbursed: boolean;
     isExpired: boolean;
 };
+
+export interface RedeemStats {
+    totalRequests: number;
+    totalSuccesses: number;
+    totalPremium: number;
+    premiumFraction: number;
+    totalLiquidated: number;
+    liquidatedFraction: number;
+    totalPolkaBTCRedeemed: string;
+    averageRequest: DistributionStats;
+}

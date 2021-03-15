@@ -1,20 +1,64 @@
 import format from "pg-format";
-import { Issue } from "./issueModels";
+import { Issue, IssueStats } from "./issueModels";
 import { SatoshisTimeData } from "../common/commonModels";
 import { planckToDOT, satToBTC, stripHexPrefix } from "@interlay/polkabtc";
-
+import Big from "big.js";
 import pool from "../common/pool";
 import {
     btcAddressToString,
     BtcNetworkName,
     Filter,
-    filtersToWhere
+    filtersToWhere,
 } from "../common/util";
 import { getTxDetailsForRequest, RequestType } from "../common/btcTxUtils";
 import { IssueColumns } from "../common/columnTypes";
-import logFn from '../common/logger'
+import logFn from "../common/logger";
 
-export const logger = logFn({ name: 'issueDataService' });
+export const logger = logFn({ name: "issueDataService" });
+
+export async function getIssueStats(): Promise<IssueStats> {
+    try {
+        const res = await pool.query(`
+            SELECT
+                (SELECT COUNT(*) FROM v_parachain_data_request_issue) total,
+                COUNT(*) successful,
+                COALESCE(SUM(issued), 0) sum,
+                MIN(issued),
+                MAX(issued),
+                percentile_cont(ARRAY[0.25, 0.5, 0.75]) WITHIN GROUP (ORDER BY issued) percentiles,
+                stddev_pop(issued) stddev
+                FROM
+                (SELECT ex.amount_btc::BIGINT - req.fee_polkabtc::BIGINT issued
+                    FROM v_parachain_data_execute_issue ex
+                    JOIN v_parachain_data_request_issue req
+                    USING (issue_id)
+                ) iss
+        `);
+        const row = res.rows[0];
+        const successful = new Big(row.successful);
+        return {
+            totalRequests: row.total,
+            totalSuccesses: successful.toNumber(),
+            totalPolkaBTCIssued: satToBTC(row.sum),
+            averageRequest: {
+                min: satToBTC(row.min),
+                max: satToBTC(row.max),
+                mean: successful.eq(0)
+                    ? "0"
+                    : new Big(satToBTC(row.sum)).div(successful).toString(),
+                stddev: satToBTC(row.stddev),
+                percentiles: {
+                    quarter: satToBTC(row.percentiles[0]),
+                    median: satToBTC(row.percentiles[1]),
+                    threeQuarter: satToBTC(row.percentiles[2]),
+                },
+            },
+        };
+    } catch (e) {
+        logger.error(e);
+        throw e;
+    }
+}
 
 export async function getTotalSuccessfulIssues(): Promise<string> {
     try {
@@ -44,13 +88,18 @@ export async function getRecentDailyIssues(
     daysBack: number
 ): Promise<SatoshisTimeData[]> {
     try {
-        return (await pool.query(`
+        return (
+            await pool.query(
+                `
         SELECT extract(epoch from d.date) * 1000 as date, coalesce(SUM(ex.amount_btc::INTEGER), 0) AS sat
         FROM (SELECT (current_date - offs) AS date FROM generate_series(0, $1, 1) AS offs) d
         LEFT OUTER JOIN v_parachain_data_execute_issue AS ex LEFT OUTER JOIN v_parachain_data_request_issue AS req USING (issue_id)
         ON d.date >= ex.block_ts::date
         GROUP BY 1
-        ORDER BY 1 ASC`, [daysBack])).rows
+        ORDER BY 1 ASC`,
+                [daysBack]
+            )
+        ).rows;
     } catch (e) {
         logger.error(e);
         throw e;
