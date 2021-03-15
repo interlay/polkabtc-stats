@@ -22,13 +22,7 @@ export async function getVaultCollateralisationsAtTime(timestamp: number): Promi
     try {
         const res = await pool.query(`
             SELECT
-                issued - redeemed tokens, vault_id,
-                (SELECT col FROM (
-                    SELECT DISTINCT vault_id,
-                        first_value(total_collateral)OVER (PARTITION BY vault_id ORDER BY block_ts desc) col
-                    FROM v_parachain_vault_collateral
-                    WHERE block_ts < $1
-                ) c),
+                issued - redeemed tokens, vault_id, col,
                 (SELECT "event_data" ->> 1 AS rate
                 FROM v_parachain_data
                 WHERE section='exchangeRateOracle'::text
@@ -37,6 +31,12 @@ export async function getVaultCollateralisationsAtTime(timestamp: number): Promi
                 ORDER BY block_ts DESC LIMIT 1)
             FROM
                 v_parachain_vault_registration
+                JOIN
+                (SELECT DISTINCT vault_id,
+                        first_value(total_collateral)OVER (PARTITION BY vault_id ORDER BY block_ts desc) col
+                    FROM v_parachain_vault_collateral
+                    WHERE block_ts < $1
+                ) c USING (vault_id)
                 JOIN
                 (SELECT COALESCE (SUM(ex.amount_btc::BIGINT - req.fee_polkabtc::BIGINT), 0) issued, ex.vault_id
                     FROM v_parachain_data_execute_issue ex
