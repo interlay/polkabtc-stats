@@ -18,6 +18,59 @@ import { VaultStats } from "./vaultModels";
 
 export const logger = logFn({ name: "vaultDataService" });
 
+export async function getVaultCollateralisationsAtTime(timestamp: number): Promise<string[]> {
+    try {
+        const res = await pool.query(`
+            SELECT
+                issued - redeemed tokens, vault_id,
+                (SELECT col FROM (
+                    SELECT DISTINCT vault_id,
+                        first_value(total_collateral)OVER (PARTITION BY vault_id ORDER BY block_ts desc) col
+                    FROM v_parachain_vault_collateral
+                    WHERE block_ts < $1
+                ) c),
+                (SELECT "event_data" ->> 1 AS rate
+                FROM v_parachain_data
+                WHERE section='exchangeRateOracle'::text
+                    AND method='SetExchangeRate'::text
+                    AND block_ts < $1
+                ORDER BY block_ts DESC LIMIT 1)
+            FROM
+                v_parachain_vault_registration
+                JOIN
+                (SELECT COALESCE (SUM(ex.amount_btc::BIGINT - req.fee_polkabtc::BIGINT), 0) issued, ex.vault_id
+                    FROM v_parachain_data_execute_issue ex
+                    JOIN v_parachain_data_request_issue req
+                    USING (issue_id)
+                    WHERE ex.block_ts < $1
+                    GROUP BY ex.vault_id
+                ) iss USING (vault_id)
+                JOIN
+                (SELECT COALESCE(SUM(req.amount_polka_btc::BIGINT - req.fee_polkabtc::BIGINT), 0) redeemed, ex.vault_id
+                    FROM v_parachain_redeem_request req
+                    JOIN v_parachain_redeem_execute ex USING (redeem_id)
+                    LEFT OUTER JOIN v_parachain_redeem_cancel USING (redeem_id)
+                    WHERE (reimbursed IS NULL OR reimbursed = 'true') AND ex.block_ts < $1
+                    GROUP BY ex.vault_id
+                ) red USING (vault_id)
+        `, [new Date(timestamp)]);
+
+        const polkaBtc = await getPolkaBtc();
+        const rates = res.rows.map((row) => {
+            const exchangeRate = hexStringFixedPointToBig(polkaBtc.api, row.rate);
+            const collateral = new Big(row.col ? row.col : 0);
+            const collateralInPolkaBTC = collateral.div(exchangeRate);
+            const tokens = new Big(row.tokens);
+            return tokens.eq(0) ? "0" : collateralInPolkaBTC.div(tokens).toString();
+        });
+        return rates;
+
+    } catch (e) {
+        logger.error(e);
+        throw e;
+    }
+}
+
 export async function getVaultStats(): Promise<VaultStats> {
     try {
         const res = await pool.query(`
