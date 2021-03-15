@@ -31,7 +31,7 @@ export async function getRedeemStats(): Promise<RedeemStats> {
                 stddev_pop(redeemed) stddev
                 FROM
                 (SELECT amount_polka_btc::BIGINT - fee_polkabtc::BIGINT redeemed
-                    FROM v_parachain_redeem_request
+                    FROM v_parachain_redeem_execute
                     LEFT OUTER JOIN v_parachain_redeem_cancel USING (redeem_id)
                     WHERE reimbursed IS NULL OR reimbursed = 'true'
                 ) red
