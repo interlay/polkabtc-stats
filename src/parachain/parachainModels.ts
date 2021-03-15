@@ -1,3 +1,5 @@
+import {DistributionStats} from "../common/commonModels";
+
 export interface ParachainStatusUpdate {
     id: string;
     timestamp: string;
@@ -23,4 +25,7 @@ export interface ParachainStats {
         count: number;
         fractionOfTotal: number;
     };
+    voteCounts: DistributionStats;
+    ayeVotes: DistributionStats;
+    nayVotes: DistributionStats;
 }

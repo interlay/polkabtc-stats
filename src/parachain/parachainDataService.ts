@@ -12,13 +12,52 @@ export const logger = logFn({ name: "parachainDataService" });
 
 export async function getStatusStats(): Promise<ParachainStats> {
     try {
+        //TODO: cleanup this entire code
         const res = await pool.query(`
             SELECT
                 (SELECT COUNT(*) FROM v_parachain_stakedrelayer_register) registrations,
                 (SELECT COUNT(*) FROM v_parachain_stakedrelayer_deregister) deregistrations,
                 (SELECT COUNT(*) FROM v_parachain_status_suggest) suggested_updates,
                 (SELECT COUNT(*) FROM v_parachain_status_execute) passed_updates,
-                (SELECT COUNT(*) FROM v_parachain_status_reject) rejected_updates
+                (SELECT COUNT(*) FROM v_parachain_status_reject) rejected_updates,
+                COALESCE(SUM(yeas), 0) total_y,
+                COALESCE(SUM(nays), 0) total_n,
+                COALESCE(SUM(counts), 0) total_c,
+                MIN(yeas) min_y,
+                MIN(nays) min_n,
+                MIN(counts) min_c,
+                MAX(yeas) max_y,
+                MAX(nays) max_n,
+                MAX(counts) max_c,
+                percentile_cont(ARRAY[0.25, 0.5, 0.75]) WITHIN GROUP (ORDER BY yeas) percentiles_y,
+                percentile_cont(ARRAY[0.25, 0.5, 0.75]) WITHIN GROUP (ORDER BY yeas) percentiles_n,
+                percentile_cont(ARRAY[0.25, 0.5, 0.75]) WITHIN GROUP (ORDER BY counts) percentiles_c,
+                stddev_pop(yeas) stddev_y,
+                stddev_pop(nays) stddev_n,
+                stddev_pop(counts) stddev_c
+            FROM
+            (SELECT
+                (
+                    SELECT COALESCE(SUM(stake::BIGINT), 0) y
+                    FROM v_parachain_stakedrelayer_register
+                    JOIN (
+                        SELECT relayer AS relayer_id, update_id, 1 AS vote
+                        FROM v_parachain_status_vote WHERE approve='true'
+                    ) votes USING (relayer_id) GROUP BY update_id
+                ) yeas,
+                (
+                    SELECT COALESCE(SUM(stake::BIGINT), 0) n
+                    FROM v_parachain_stakedrelayer_register
+                    JOIN (
+                        SELECT relayer AS relayer_id, update_id, 1 AS vote
+                        FROM v_parachain_status_vote WHERE approve='false'
+                    ) votes USING (relayer_id) GROUP BY update_id
+                ) nays,
+                (
+                    SELECT COUNT(relayer) count
+                    FROM v_parachain_status_vote GROUP BY update_id
+                ) counts
+            ) votes
         `);
         const row = res.rows[0];
         const totalUpdates = new Big(row.suggested_updates);
@@ -40,6 +79,43 @@ export async function getStatusStats(): Promise<ParachainStats> {
                 fractionOfTotal: totalUpdates.eq(0)
                     ? 0
                     : new Big(row.passed_updates).div(totalUpdates).toNumber(),
+            },
+            ayeVotes: {
+                min: row.min_y,
+                max: row.max_y,
+                mean: totalUpdates.eq(0) ? "0" : new Big(row.total_y).div(totalUpdates).toString(),
+                stddev: row.stddev_y,
+                percentiles: row.percentiles_y ? {
+                    quarter: row.percentiles_y[0],
+                    median: row.percentiles_y[1],
+                    threeQuarter: row.percentiles_y[2],
+                } : {
+                    quarter: 0,
+                    median: 0,
+                    threeQuarter: 0,
+                },
+            },
+            nayVotes: {
+                min: row.min_n,
+                max: row.max_n,
+                mean: totalUpdates.eq(0) ? "0" : new Big(row.total_n).div(totalUpdates).toString(),
+                stddev: row.stddev_n,
+                percentiles: row.percentiles_n ? {
+                    quarter: row.percentiles_n[0],
+                    median: row.percentiles_n[1],
+                    threeQuarter: row.percentiles_n[2],
+                } : {quarter: 0, median: 0, threeQuarter: 0},
+            },
+            voteCounts: {
+                min: row.min_c,
+                max: row.max_c,
+                mean: totalUpdates.eq(0) ? "0" : new Big(row.total_c).div(totalUpdates).toString(),
+                stddev: row.stddev_c,
+                percentiles: row.percentiles_c ? {
+                    quarter: row.percentiles_c[0],
+                    median: row.percentiles_c[1],
+                    threeQuarter: row.percentiles_c[2],
+                } : {quarter: 0, median: 0, threeQuarter: 0},
             },
         };
     } catch (e) {
