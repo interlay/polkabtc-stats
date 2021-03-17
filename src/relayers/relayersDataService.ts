@@ -3,11 +3,7 @@ import {
     RelayerCountTimeData,
     RelayerSlaRanking,
 } from "./relayersModel";
-import Big from "big.js";
-import {
-    getDurationAboveMinSla,
-    hexStringFixedPointToBig,
-} from "../common/util";
+import { getDurationAboveMinSla } from "../common/util";
 import pool from "../common/pool";
 import { planckToDOT } from "@interlay/polkabtc";
 import { getPolkaBtc } from "../common/polkaBtc";
