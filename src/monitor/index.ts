@@ -14,18 +14,27 @@ import { ParachainEvents } from "../models/ParachainEvents";
 import {getTypeORMConnection} from "../common/ormConnection";
 import {getPolkaBtc} from "../common/polkaBtc";
 import logFn from '../common/logger'
+import { hexStringFixedPointToBig } from "../common/util";
 
 export const logger = logFn({ name: 'monitor' });
 
 function generateEvents(
     events: EventRecord[],
     block: SignedBlock,
-    timestamp: Moment
+    timestamp: Moment,
+    decoder: (hexStr: string) => number
 ) {
     const data = [];
     for (const { event } of events) {
         if (event.section === "system") {
             continue;
+        }
+
+        // decode SLA events
+        let eventData = event.data.toJSON() as any[]
+        if (event.section == "sla" && ['UpdateVaultSLA', 'UpdateRelayerSLA'].includes(event.method)) {
+            eventData.push(decoder(eventData[1]))
+            eventData.push(decoder(eventData[2]))
         }
 
         const msg = {
@@ -34,7 +43,7 @@ function generateEvents(
             timestamp: timestamp.toNumber(),
             section: event.section,
             method: event.method,
-            data: event.data.toJSON(),
+            data: eventData,
         };
         data.push(msg);
     }
@@ -54,8 +63,12 @@ async function insertBlockData(
 
     logger.info({ blockNr, hash }, `Processing block ${blockNr} ${hash}`);
 
+    const longdoubleDecoder = (hexStr: string) => {
+        return hexStringFixedPointToBig(polkaBTC.api, hexStr).toNumber()
+    }
+
     const promises = [];
-    for (let ev of generateEvents(events.toArray(), block, timestamp)) {
+    for (let ev of generateEvents(events.toArray(), block, timestamp, longdoubleDecoder)) {
         let event = new ParachainEvents();
         event.data = ev;
         event.block_number = ev.blockNumber;
