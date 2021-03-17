@@ -32,7 +32,7 @@ function generateEvents(
 
         // decode SLA events
         let eventData = event.data.toJSON() as any[]
-        if (event.section == "sla" && ['UpdateVaultSLA', 'UpdateRelayerSLA'].includes(event.method)) {
+        if (event.section === "sla" && ['UpdateVaultSLA', 'UpdateRelayerSLA'].includes(event.method)) {
             eventData.push(decoder(eventData[1]))
             eventData.push(decoder(eventData[2]))
         }
