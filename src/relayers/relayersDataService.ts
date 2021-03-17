@@ -110,12 +110,7 @@ export async function getAllRelayers(
                     ) slash
                 ON reg.relayer_id = slash.relayer_id
                 LEFT OUTER JOIN
-                    (
-                        SELECT block_number
-                        FROM parachain_events
-                        ORDER BY block_number DESC
-                        LIMIT 1
-                    ) latestblock
+                    (SELECT max(block_number) as block_number FROM parachain_events) latestblock
                 ON TRUE
                 ORDER BY reg.relayer_id, reg.block_number DESC
             `, [new Date(slaSince)]);

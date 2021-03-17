@@ -17,10 +17,10 @@ export class VParachainVaultSlaUpdate {
     vault_id: string;
 
     @ViewColumn()
-    new_sla: string;
+    new_sla: number;
 
     @ViewColumn()
-    delta: string;
+    delta: number;
 
     @ViewColumn()
     block_ts: string;

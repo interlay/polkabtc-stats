@@ -251,10 +251,7 @@ export async function getAllVaults(slaSince: number): Promise<VaultData[]> {
         (SELECT COUNT(DISTINCT redeem_id) count FROM v_parachain_redeem_request WHERE vault_id = reg.vault_id AND block_ts > $1) AS request_redeem_count,
         (SELECT COUNT(DISTINCT redeem_id) count FROM v_parachain_redeem_execute WHERE vault_id = reg.vault_id AND block_ts > $1) AS execute_redeem_count,
         (SELECT COUNT(DISTINCT redeem_id) count FROM v_parachain_redeem_cancel WHERE vault_id = reg.vault_id AND block_ts > $1) AS cancel_redeem_count,
-        (SELECT array_agg(delta) lifetime_sla_change
-                FROM v_parachain_vault_sla_update
-                WHERE vault_id = reg.vault_id AND block_ts > $1
-                GROUP BY vault_id) AS lifetime_sla_change
+        coalesce((SELECT sum(delta) as lifetime_sla_change FROM v_parachain_vault_sla_update_v2 WHERE vault_id = reg.vault_id AND block_ts > $1 GROUP BY vault_id), 0) AS lifetime_sla_change
         FROM (
             SELECT vault_id, collateral, block_number
             FROM v_parachain_vault_registration
@@ -266,7 +263,6 @@ export async function getAllVaults(slaSince: number): Promise<VaultData[]> {
         `,
             [new Date(slaSince)]
         );
-        const polkaBtc = await getPolkaBtc();
         return res.rows.map((row) => ({
             id: row.vault_id,
             collateral: planckToDOT(row.collateral),
@@ -275,16 +271,7 @@ export async function getAllVaults(slaSince: number): Promise<VaultData[]> {
             request_redeem_count: row.request_redeem_count,
             execute_redeem_count: row.execute_redeem_count,
             cancel_redeem_count: row.cancel_redeem_count,
-            lifetime_sla: row.lifetime_sla_change
-                ? row.lifetime_sla_change.reduce(
-                      (acc: Big, encodedDelta: string) =>
-                          hexStringFixedPointToBig(
-                              polkaBtc.api,
-                              encodedDelta
-                          ).add(acc),
-                      new Big(0)
-                  )
-                : 0,
+            lifetime_sla: row.lifetime_sla_change,
         }));
     } catch (e) {
         logger.error(e);
