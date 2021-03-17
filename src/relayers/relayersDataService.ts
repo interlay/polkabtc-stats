@@ -87,7 +87,7 @@ export async function getAllRelayers(
                 v_parachain_stakedrelayer_register reg
                 LEFT OUTER JOIN
                   (
-                    SELECT relayer_id, array_agg(delta) lifetime_sla_change
+                    SELECT relayer_id, sum(delta) as lifetime_sla_change
                     FROM v_parachain_stakedrelayer_sla_update
                     WHERE block_ts > $1
                     GROUP BY relayer_id
@@ -114,7 +114,6 @@ export async function getAllRelayers(
                 ON TRUE
                 ORDER BY reg.relayer_id, reg.block_number DESC
             `, [new Date(slaSince)]);
-        const polkaBtc = await getPolkaBtc();
         return res.rows
             .filter((row) => !row.deregistered)
             .map((row) => ({
@@ -122,16 +121,7 @@ export async function getAllRelayers(
                 stake: planckToDOT(row.stake),
                 bonded: row.bonded,
                 slashed: row.slashed,
-                lifetime_sla: row.lifetime_sla_change
-                    ? row.lifetime_sla_change.reduce(
-                          (acc: Big, encodedDelta: string) =>
-                              hexStringFixedPointToBig(
-                                  polkaBtc.api,
-                                  encodedDelta
-                              ).add(acc),
-                          new Big(0)
-                      )
-                    : 0,
+                lifetime_sla: row.lifetime_sla_change,
                 block_count: row.block_count,
             }));
     } catch (e) {
