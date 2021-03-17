@@ -18,11 +18,15 @@ import { VaultStats } from "./vaultModels";
 
 export const logger = logFn({ name: "vaultDataService" });
 
-export async function getVaultCollateralisationsAtTime(timestamp: number): Promise<string[]> {
+export async function getVaultCollateralisationsAtTime(
+    timestamp: number
+): Promise<string[]> {
     try {
         const res = await pool.query(`
             SELECT
-                issued - redeemed tokens, vault_id, col,
+                COALESCE(issued - redeemed, 0) tokens,
+                vault_id,
+                COALESCE(col, reg.collateral) col,
                 (SELECT "event_data" ->> 1 AS rate
                 FROM v_parachain_data
                 WHERE section='exchangeRateOracle'::text
@@ -30,14 +34,16 @@ export async function getVaultCollateralisationsAtTime(timestamp: number): Promi
                     AND block_ts < $1
                 ORDER BY block_ts DESC LIMIT 1)
             FROM
-                v_parachain_vault_registration
-                JOIN
+                (SELECT * FROM v_parachain_vault_registration
+                    WHERE block_ts < $1
+                ) reg
+                LEFT OUTER JOIN
                 (SELECT DISTINCT vault_id,
                         first_value(total_collateral)OVER (PARTITION BY vault_id ORDER BY block_ts desc) col
                     FROM v_parachain_vault_collateral
                     WHERE block_ts < $1
                 ) c USING (vault_id)
-                JOIN
+                LEFT OUTER JOIN
                 (SELECT COALESCE (SUM(ex.amount_btc::BIGINT - req.fee_polkabtc::BIGINT), 0) issued, ex.vault_id
                     FROM v_parachain_data_execute_issue ex
                     JOIN v_parachain_data_request_issue req
@@ -45,7 +51,7 @@ export async function getVaultCollateralisationsAtTime(timestamp: number): Promi
                     WHERE ex.block_ts < $1
                     GROUP BY ex.vault_id
                 ) iss USING (vault_id)
-                JOIN
+                LEFT OUTER JOIN
                 (SELECT COALESCE(SUM(req.amount_polka_btc::BIGINT - req.fee_polkabtc::BIGINT), 0) redeemed, ex.vault_id
                     FROM v_parachain_redeem_request req
                     JOIN v_parachain_redeem_execute ex USING (redeem_id)
@@ -53,18 +59,26 @@ export async function getVaultCollateralisationsAtTime(timestamp: number): Promi
                     WHERE (reimbursed IS NULL OR reimbursed = 'true') AND ex.block_ts < $1
                     GROUP BY ex.vault_id
                 ) red USING (vault_id)
-        `, [new Date(timestamp)]);
+        `,
+            [new Date(timestamp)]
+        );
 
         const polkaBtc = await getPolkaBtc();
         const rates = res.rows.map((row) => {
-            const exchangeRate = hexStringFixedPointToBig(polkaBtc.api, row.rate);
+            const exchangeRate = hexStringFixedPointToBig(
+                polkaBtc.api,
+                row.rate
+            );
             const collateral = new Big(row.col ? row.col : 0);
-            const collateralInPolkaBTC = collateral.div(exchangeRate);
+            const collateralInPolkaBTC = exchangeRate.eq(0)
+                ? new Big(0)
+                : collateral.div(exchangeRate);
             const tokens = new Big(row.tokens);
-            return tokens.eq(0) ? "0" : collateralInPolkaBTC.div(tokens).toString();
+            return tokens.eq(0)
+                ? "0"
+                : collateralInPolkaBTC.div(tokens).toString();
         });
         return rates;
-
     } catch (e) {
         logger.error(e);
         throw e;
