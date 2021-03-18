@@ -4,7 +4,7 @@ import bodyParser from "body-parser";
 import pino from "express-pino-logger";
 import { RegisterRoutes } from "../build/routes";
 import logFn from './common/logger'
-import { VaultsController } from "./vaults/vaultDataController";
+import { totalRelayedBlocks } from "./relayBlocks/blockService";
 
 export const app = express();
 
@@ -37,8 +37,8 @@ app.get("/health", (_, res) => {
 // ready to serve HTTP traffic
 app.get("/ready", async (_, res) => {
   try {
-    const vaults = await (new VaultsController()).getVaults(1)
-    if (vaults.length > 0) {
+    const count = await totalRelayedBlocks()
+    if (parseInt(count) >= 0) {
       res.send('ok')
     }
   } catch (e) {
