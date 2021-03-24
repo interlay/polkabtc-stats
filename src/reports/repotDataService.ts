@@ -17,14 +17,12 @@ export async function getAccountStats(): Promise<AccountStats> {
                 select distinct vault_id as account_id from v_parachain_vault_registration
             ) as users
         `);
-        console.log(total.rows);
         const full = await pool.query(`
             select count(*) from
                 (select distinct requester as account_id from v_parachain_redeem_execute
                 intersect
                 select distinct requester_id as account_id from v_parachain_data_execute_issue) c
         `);
-        console.log(full.rows);
         const onlyIssue = await pool.query(`
             select count(*) from
                 (select distinct requester_id as account_id from v_parachain_data_execute_issue

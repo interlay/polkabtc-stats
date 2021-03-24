@@ -6,9 +6,10 @@ import { ViewEntity, ViewColumn } from "typeorm";
     (v_parachain_data.event_data ->> 0) AS refund_id,
     (v_parachain_data.event_data ->> 1) AS issuer,
     (v_parachain_data.event_data ->> 2) AS amount,
-    (v_parachain_data.event_data ->> 3) AS vault,
-    (v_parachain_data.event_data ->> 4) AS btc_address,
-    (v_parachain_data.event_data ->> 5) AS issue_id,
+    (v_parachain_data.event_data ->> 3) AS fee,
+    (v_parachain_data.event_data ->> 4) AS vault,
+    (v_parachain_data.event_data ->> 5) AS btc_address,
+    (v_parachain_data.event_data ->> 6) AS issue_id,
     v_parachain_data.block_number,
     v_parachain_data.block_ts
 FROM v_parachain_data
@@ -25,6 +26,9 @@ export class VParachainRefundRequest {
 
     @ViewColumn()
     amount: string;
+
+    @ViewColumn()
+    fee: string;
 
     @ViewColumn()
     vault: string;
