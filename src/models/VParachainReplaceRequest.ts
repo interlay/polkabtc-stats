@@ -2,9 +2,10 @@ import { ViewEntity, ViewColumn } from "typeorm";
 
 @ViewEntity({
     expression: `
-    SELECT (v_parachain_data.event_data ->> 0) AS old_vault_id,
-        (v_parachain_data.event_data ->> 1) AS amount_btc,
-        (v_parachain_data.event_data ->> 2) AS griefing_collateral,
+    SELECT (v_parachain_data.event_data ->> 0) AS replace_id,
+        (v_parachain_data.event_data ->> 1) AS old_vault_id,
+        (v_parachain_data.event_data ->> 2) AS amount_btc,
+        (v_parachain_data.event_data ->> 3) AS griefing_collateral,
         v_parachain_data.block_number,
         v_parachain_data.block_ts
     FROM v_parachain_data
@@ -13,6 +14,9 @@ import { ViewEntity, ViewColumn } from "typeorm";
 })
 
 export class VParachainReplaceRequest {
+    @ViewColumn()
+    replace_id: string;
+
     @ViewColumn()
     old_vault_id: string;
 
