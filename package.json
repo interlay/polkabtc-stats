@@ -1,6 +1,6 @@
 {
     "name": "@interlay/polkabtc-stats",
-    "version": "0.1.19",
+    "version": "0.1.20",
     "license": "Apache-2.0",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
@@ -16,8 +16,8 @@
         "start": "node -r dotenv/config build/src/server.js"
     },
     "dependencies": {
-        "@interlay/polkabtc": "0.9.2",
-        "@interlay/polkabtc-types": "0.5.2",
+        "@interlay/polkabtc": "0.11.0",
+        "@interlay/polkabtc-types": "0.6.1",
         "@polkadot/api": "3.11.1",
         "@polkadot/rpc-core": "3.11.1",
         "@supercharge/promise-pool": "^1.6.0",

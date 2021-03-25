@@ -9,6 +9,7 @@ import { ViewEntity, ViewColumn } from "typeorm";
         (v_parachain_data.event_data ->> 4) AS to_be_replaced_btc,
         (v_parachain_data.event_data ->> 5) AS collateral_dot,
         (v_parachain_data.event_data ->> 6) AS status,
+        (v_parachain_data.event_data ->> 7) AS griefing_collateral,
         v_parachain_data.block_number,
         v_parachain_data.block_ts
     FROM v_parachain_data
@@ -37,4 +38,7 @@ export class VParachainVaultLiquidation {
 
     @ViewColumn()
     status: string;
+
+    @ViewColumn()
+    griefing_collateral: string;
 }
