@@ -237,9 +237,9 @@
   integrity sha512-uhlzcp9rcwGtsEWStzcWrKWVIQtmnQTVgpXL2RdWSF2Ed4cF+Y2fQe5SsKBSR56T6GImHTYds0Psare+HzI0vw==
 
 "@interlay/polkabtc@0.11.2":
-  version "0.11.1"
-  resolved "https://registry.yarnpkg.com/@interlay/polkabtc/-/polkabtc-0.11.1.tgz#20234ced577d2ac6b580b1511648ddcb64cdaba3"
-  integrity sha512-cOQJGLp/So2ngHUfyPteH0VnGWQYEXV1XJOef5soVEBRZHcFoQJPhT6sJYtOALQ3rK3CSGwgxrwXhySJIIwn7A==
+  version "0.11.2"
+  resolved "https://registry.yarnpkg.com/@interlay/polkabtc/-/polkabtc-0.11.2.tgz#f33c8226f4347a7cda789433dbf5fe539df70793"
+  integrity sha512-mUgiyOvFOQ/slkktXz/JFWEGTEutHJ03Exl3l97Afc4GbxEYMEaNis97k4tqZESzgjS7on7xd1oZImqVD7bNGw==
   dependencies:
     "@interlay/esplora-btc-api" "0.4.0"
     "@interlay/polkabtc-types" "0.6.2"
