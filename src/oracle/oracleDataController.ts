@@ -4,7 +4,7 @@ import { getPolkaBtc } from "../common/polkaBtc";
 import { OracleStatus } from "./oracleModel";
 
 interface CachedOracleData {
-    offlineCutoffDatetime: Date;
+    maxDelay: number;
     feed: string;
     namesMap: Map<string, string>
 }
@@ -17,9 +17,8 @@ export class OracleDataController extends Controller {
         const maxDelay = await polkabtc.oracle.getMaxDelay();
         const feed = await polkabtc.oracle.getFeed();
         const namesMap = await polkabtc.oracle.getSourcesById();
-        const offlineCutoffDatetime = new Date(Date.now() - maxDelay);
         return {
-            offlineCutoffDatetime, feed, namesMap
+            maxDelay, feed, namesMap
         };
     })();
 
@@ -27,14 +26,14 @@ export class OracleDataController extends Controller {
     public async getLatestSubmissionForEachOracle(): Promise<OracleStatus[]> {
         const oracleCache = await this.cachedOracleData;
         const polkabtc = await getPolkaBtc();
-        return getLatestSubmissionForEachOracle(polkabtc.api, oracleCache.offlineCutoffDatetime, oracleCache.feed, oracleCache.namesMap);
+        return getLatestSubmissionForEachOracle(polkabtc.api, oracleCache.maxDelay, oracleCache.feed, oracleCache.namesMap);
     }
 
     @Get("/latest")
     public async getLatestSubmission(): Promise<OracleStatus> {
         const oracleCache = await this.cachedOracleData;
         const polkabtc = await getPolkaBtc();
-        return getLatestSubmission(polkabtc.api, oracleCache.offlineCutoffDatetime, oracleCache.feed, oracleCache.namesMap);
+        return getLatestSubmission(polkabtc.api, oracleCache.maxDelay, oracleCache.feed, oracleCache.namesMap);
     }
 
 }

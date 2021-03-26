@@ -6,9 +6,14 @@ import { hexStringFixedPointToBig } from "../common/util";
 
 export const logger = logFn({ name: "oracleDataService" });
 
+function computeOfflineStatusThreshold(maxDelay: number): Date {
+    return new Date(Date.now() - maxDelay);
+
+}
+
 export async function getLatestSubmissionForEachOracle(
     api: ApiPromise,
-    offlineCutoffDatetime: Date,
+    maxDelay: number,
     feed: string,
     namesMap: Map<string, string>
 ): Promise<OracleStatus[]> {
@@ -22,9 +27,10 @@ export async function getLatestSubmissionForEachOracle(
                 WHERE v.oracle_id = main.oracle_id
             )
         `);
+        const offlineStatusThreshold = computeOfflineStatusThreshold(maxDelay);
         return Promise.all(res.rows.map(async (row) => {
             const submissionMilliseconds = new Date(row.block_ts).getTime();
-            const offlineOracleMilliseconds = offlineCutoffDatetime.getTime();
+            const offlineOracleMilliseconds = offlineStatusThreshold.getTime();
             const online = submissionMilliseconds >= offlineOracleMilliseconds;
             return {
                 id: row.oracle_id,
@@ -43,7 +49,7 @@ export async function getLatestSubmissionForEachOracle(
 
 export async function getLatestSubmission(
     api: ApiPromise,
-    offlineCutoffDatetime: Date,
+    maxDelay: number,
     feed: string,
     namesMap: Map<string, string>
 ): Promise<OracleStatus> {
@@ -57,9 +63,10 @@ export async function getLatestSubmission(
             )
         `);
         const row = res.rows[0];
+        const offlineStatusThreshold = computeOfflineStatusThreshold(maxDelay);
         const submissionMilliseconds = new Date(row.block_ts).getTime();
-        const offlineOracleMilliseconds = offlineCutoffDatetime.getTime();
-        const online = submissionMilliseconds >= offlineOracleMilliseconds;
+        const offlineOracleThresholdMilliseconds = offlineStatusThreshold.getTime();
+        const online = submissionMilliseconds >= offlineOracleThresholdMilliseconds;
         return {
             id: row.oracle_id,
             source: namesMap.get(row.oracle_id) || "",
