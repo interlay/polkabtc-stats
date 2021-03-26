@@ -14,9 +14,11 @@ interface CachedOracleData {
 export class OracleDataController extends Controller {
     cachedOracleData: Promise<CachedOracleData> = (async () => {
         const polkabtc = await getPolkaBtc();
-        const onlineTimeout = await polkabtc.oracle.getOnlineTimeout();
-        const feed = await polkabtc.oracle.getFeed();
-        const namesMap = await polkabtc.oracle.getSourcesById();
+        const [onlineTimeout, feed, namesMap] = await Promise.all([
+            polkabtc.oracle.getOnlineTimeout(),
+            polkabtc.oracle.getFeed(),
+            polkabtc.oracle.getSourcesById()
+        ])
         return {
             onlineTimeout, feed, namesMap
         };
