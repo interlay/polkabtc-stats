@@ -6,14 +6,14 @@ import { hexStringFixedPointToBig } from "../common/util";
 
 export const logger = logFn({ name: "oracleDataService" });
 
-function computeOfflineStatusThreshold(maxDelay: number): Date {
-    return new Date(Date.now() - maxDelay);
+function computeOfflineStatusThreshold(onlineTimeout: number): Date {
+    return new Date(Date.now() - onlineTimeout);
 
 }
 
 export async function getLatestSubmissionForEachOracle(
     api: ApiPromise,
-    maxDelay: number,
+    onlineTimeout: number,
     feed: string,
     namesMap: Map<string, string>
 ): Promise<OracleStatus[]> {
@@ -27,7 +27,7 @@ export async function getLatestSubmissionForEachOracle(
                 WHERE v.oracle_id = main.oracle_id
             )
         `);
-        const offlineStatusThreshold = computeOfflineStatusThreshold(maxDelay);
+        const offlineStatusThreshold = computeOfflineStatusThreshold(onlineTimeout);
         return Promise.all(res.rows.map(async (row) => {
             const submissionMilliseconds = new Date(row.block_ts).getTime();
             const offlineOracleMilliseconds = offlineStatusThreshold.getTime();
@@ -49,7 +49,7 @@ export async function getLatestSubmissionForEachOracle(
 
 export async function getLatestSubmission(
     api: ApiPromise,
-    maxDelay: number,
+    onlineTimeout: number,
     feed: string,
     namesMap: Map<string, string>
 ): Promise<OracleStatus> {
@@ -63,7 +63,7 @@ export async function getLatestSubmission(
             )
         `);
         const row = res.rows[0];
-        const offlineStatusThreshold = computeOfflineStatusThreshold(maxDelay);
+        const offlineStatusThreshold = computeOfflineStatusThreshold(onlineTimeout);
         const submissionMilliseconds = new Date(row.block_ts).getTime();
         const offlineOracleThresholdMilliseconds = offlineStatusThreshold.getTime();
         const online = submissionMilliseconds >= offlineOracleThresholdMilliseconds;
