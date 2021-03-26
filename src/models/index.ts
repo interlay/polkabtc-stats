@@ -37,4 +37,5 @@ export { VParachainRefundRequest } from "./VParachainRefundRequest";
 export { VParachainRefundExecute } from "./VParachainRefundExecute";
 export { VParachainVaultSlaUpdate } from "./VParachainVaultSlaUpdate";
 export { VParachainStakedrelayerSlaUpdate } from "./VParachainStakedrelayerSlaUpdate";
+export { VParachainOracleSetExchangeRate } from "./VParachainOracleSetExchangeRate";
 export { RequestTxCache } from "./RequestTxCache";

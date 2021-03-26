@@ -5,8 +5,8 @@ import format from "pg-format";
 import Big from "big.js";
 import { Colmuns } from "./columnTypes";
 import { decodeFixedPointType } from "@interlay/polkabtc";
-import { ApiPromise } from "@polkadot/api";
 import { SignedFixedPoint } from "@interlay/polkabtc/build/interfaces";
+import { TypeRegistry } from "@polkadot/types";
 
 export const msInDay = 86400 * 1000;
 export const MAX_CONF =
@@ -58,12 +58,12 @@ export function btcAddressToString(
         paymentType === "P2WPKHv0"
             ? payments.p2wpkh
             : paymentType === "P2PKH"
-            ? payments.p2pkh
-            : paymentType === "P2SH"
-            ? payments.p2sh
-            : () => {
-                  throw new Error("Invalid address type");
-              };
+                ? payments.p2pkh
+                : paymentType === "P2SH"
+                    ? payments.p2sh
+                    : () => {
+                        throw new Error("Invalid address type");
+                    };
     return (
         payment({
             hash,
@@ -73,15 +73,14 @@ export function btcAddressToString(
 }
 
 export function hexStringFixedPointToBig(
-    api: ApiPromise,
     fixedPoint: string
 ): Big {
-    const val = api.createType("FixedI128", fixedPoint);
+    const typeRegistry = new TypeRegistry();
+    const val = typeRegistry.createType("FixedI128", fixedPoint);
     return new Big(decodeFixedPointType(val as SignedFixedPoint));
 }
 
 export function getDurationAboveMinSla(
-    api: ApiPromise,
     minSla: number,
     slaChanges: { f1: string; f2: string }[]
 ) {
@@ -91,7 +90,7 @@ export function getDurationAboveMinSla(
     slaChanges.forEach((slaChange) => {
         const [newSlaEncoded, date] = Object.values(slaChange);
         const timestamp = new Date(date).getTime();
-        const newSla = hexStringFixedPointToBig(api, newSlaEncoded);
+        const newSla = hexStringFixedPointToBig(newSlaEncoded);
         if (newSla.gte(minSla)) {
             currentDuration += timestamp - lastTs;
             maxDuration = Math.max(maxDuration, currentDuration);

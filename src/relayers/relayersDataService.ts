@@ -6,7 +6,6 @@ import {
 import { getDurationAboveMinSla } from "../common/util";
 import pool from "../common/pool";
 import { planckToDOT } from "@interlay/polkabtc";
-import { getPolkaBtc } from "../common/polkaBtc";
 import logFn from '../common/logger'
 
 export const logger = logFn({ name: 'relayersDataService' });
@@ -47,11 +46,9 @@ export async function getRelayersWithTrackRecord(
             FROM v_parachain_stakedrelayer_sla_update
             GROUP BY vault_id
             `);
-        const polkaBtc = await getPolkaBtc();
         const reducedRows: RelayerSlaRanking[] = res.rows.map((row) => ({
             id: row.relayer_id,
             duration: getDurationAboveMinSla(
-                polkaBtc.api,
                 minSla,
                 row.sla_changes
             ),
