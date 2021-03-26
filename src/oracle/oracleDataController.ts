@@ -27,15 +27,13 @@ export class OracleDataController extends Controller {
     @Get("/submissions")
     public async getLatestSubmissionForEachOracle(): Promise<OracleStatus[]> {
         const oracleCache = await this.cachedOracleData;
-        const polkabtc = await getPolkaBtc();
-        return getLatestSubmissionForEachOracle(polkabtc.api, oracleCache.onlineTimeout, oracleCache.feed, oracleCache.namesMap);
+        return getLatestSubmissionForEachOracle(oracleCache.onlineTimeout, oracleCache.feed, oracleCache.namesMap);
     }
 
     @Get("/latest")
     public async getLatestSubmission(): Promise<OracleStatus> {
         const oracleCache = await this.cachedOracleData;
-        const polkabtc = await getPolkaBtc();
-        return getLatestSubmission(polkabtc.api, oracleCache.onlineTimeout, oracleCache.feed, oracleCache.namesMap);
+        return getLatestSubmission(oracleCache.onlineTimeout, oracleCache.feed, oracleCache.namesMap);
     }
 
 }

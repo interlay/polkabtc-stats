@@ -1,7 +1,6 @@
 import pool from "../common/pool";
 import logFn from "../common/logger";
 import { OracleStatus } from "./oracleModel";
-import { ApiPromise } from "@polkadot/api";
 import { hexStringFixedPointToBig } from "../common/util";
 
 export const logger = logFn({ name: "oracleDataService" });
@@ -12,7 +11,6 @@ function computeOfflineStatusThreshold(onlineTimeout: number): Date {
 }
 
 export async function getLatestSubmissionForEachOracle(
-    api: ApiPromise,
     onlineTimeout: number,
     feed: string,
     namesMap: Map<string, string>
@@ -37,7 +35,7 @@ export async function getLatestSubmissionForEachOracle(
                 source: namesMap.get(row.oracle_id) || "",
                 feed,
                 lastUpdate: new Date(row.block_ts),
-                exchangeRate: hexStringFixedPointToBig(api, row.exchange_rate).toString(),
+                exchangeRate: hexStringFixedPointToBig(row.exchange_rate).toString(),
                 online,
             };
         }));
@@ -48,7 +46,6 @@ export async function getLatestSubmissionForEachOracle(
 }
 
 export async function getLatestSubmission(
-    api: ApiPromise,
     onlineTimeout: number,
     feed: string,
     namesMap: Map<string, string>
@@ -72,7 +69,7 @@ export async function getLatestSubmission(
             source: namesMap.get(row.oracle_id) || "",
             feed,
             lastUpdate: new Date(row.block_ts),
-            exchangeRate: hexStringFixedPointToBig(api, row.exchange_rate).toString(),
+            exchangeRate: hexStringFixedPointToBig(row.exchange_rate).toString(),
             online,
         };
     } catch (e) {

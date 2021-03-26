@@ -12,7 +12,6 @@ import {
 import pool from "../common/pool";
 import Big from "big.js";
 import { planckToDOT } from "@interlay/polkabtc";
-import { getPolkaBtc } from "../common/polkaBtc";
 import logFn from "../common/logger";
 import { VaultStats } from "./vaultModels";
 
@@ -63,10 +62,8 @@ export async function getVaultCollateralisationsAtTime(
             [new Date(timestamp)]
         );
 
-        const polkaBtc = await getPolkaBtc();
         const rates = res.rows.map((row) => {
             const exchangeRate = hexStringFixedPointToBig(
-                polkaBtc.api,
                 row.rate
             );
             const collateral = new Big(row.col ? row.col : 0);
@@ -136,8 +133,8 @@ export async function getVaultStats(): Promise<VaultStats> {
                 dotFraction: sum.eq(0)
                     ? 0
                     : new Big(planckToDOT(row.dot_liquidated))
-                          .div(sum)
-                          .toNumber(),
+                        .div(sum)
+                        .toNumber(),
             },
             collateralDistribution: {
                 min: planckToDOT(row.min),
@@ -193,11 +190,9 @@ export async function getVaultsWithTrackRecord(
             FROM v_parachain_vault_sla_update
             GROUP BY vault_id
             `);
-        const polkaBtc = await getPolkaBtc();
         const reducedRows: VaultSlaRanking[] = res.rows.map((row) => ({
             id: row.vault_id,
             duration: getDurationAboveMinSla(
-                polkaBtc.api,
                 minSla,
                 row.sla_changes
             ),

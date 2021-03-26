@@ -11,8 +11,8 @@ import { PolkaBTCAPI } from "@interlay/polkabtc";
 import { Connection, getRepository } from "typeorm";
 
 import { ParachainEvents } from "../models/ParachainEvents";
-import {getTypeORMConnection} from "../common/ormConnection";
-import {getPolkaBtc} from "../common/polkaBtc";
+import { getTypeORMConnection } from "../common/ormConnection";
+import { getPolkaBtc } from "../common/polkaBtc";
 import logFn from '../common/logger'
 import { hexStringFixedPointToBig } from "../common/util";
 
@@ -56,15 +56,15 @@ async function insertBlockData(
     blockNr: BlockNumber
 ) {
     const hash = await polkaBTC.api.rpc.chain.getBlockHash(blockNr);
-    const block = await polkaBTC.api.rpc.chain.getBlock(hash);
-    const timestamp = await polkaBTC.api.query.timestamp.now.at(hash);
-
-    const events = await polkaBTC.api.query.system.events.at(hash);
-
+    const [block, timestamp, events] = await Promise.all([
+        polkaBTC.api.rpc.chain.getBlock(hash),
+        polkaBTC.api.query.timestamp.now.at(hash),
+        polkaBTC.api.query.system.events.at(hash)
+    ]);
     logger.info({ blockNr, hash }, `Processing block ${blockNr} ${hash}`);
 
     const longdoubleDecoder = (hexStr: string) => {
-        return hexStringFixedPointToBig(polkaBTC.api, hexStr).toNumber()
+        return hexStringFixedPointToBig(hexStr).toNumber()
     }
 
     const promises = [];
