@@ -40,6 +40,7 @@ import {
     VParachainReplaceExecute,
     VParachainReplaceRequest,
     VParachainReplaceWithdraw,
+    VParachainOracleSetExchangeRate
 } from "../models/";
 import { ENABLE_PG_SSL, SYNC_DB_SCHEMA, PGREPLICAHOST } from "./constants";
 
@@ -89,6 +90,7 @@ const connectionPromise: Promise<Connection> = createConnection({
         VParachainStatusForce,
         VParachainRefundRequest,
         VParachainRefundExecute,
+        VParachainOracleSetExchangeRate,
         RequestTxCache,
     ],
 });
@@ -141,6 +143,7 @@ createConnection({
         VParachainStatusForce,
         VParachainRefundRequest,
         VParachainRefundExecute,
+        VParachainOracleSetExchangeRate,
         RequestTxCache,
     ],
 });

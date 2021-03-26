@@ -1,7 +1,9 @@
 {
   "entryFile": "src/app.ts",
   "noImplicitAdditionalProperties": "throw-on-extras",
-  "controllerPathGlobs": ["src/**/*Controller.ts"],
+  "controllerPathGlobs": [
+    "src/**/*Controller.ts"
+  ],
   "spec": {
     "outputDirectory": "build",
     "name": "StatsApi",
@@ -9,5 +11,8 @@
   },
   "routes": {
     "routesDir": "build"
-  }
+  },
+  "ignore": [
+    "**/node_modules/@interlay/polkabtc/node_modules/**"
+  ]
 }
