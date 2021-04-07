@@ -81,7 +81,7 @@ export async function getAllRelayers(
                 LEFT OUTER JOIN
                   (
                     SELECT relayer_id, sum(delta) as lifetime_sla_change
-                    FROM v_parachain_stakedrelayer_sla_update
+                    FROM v_parachain_stakedrelayer_sla_update_v2
                     WHERE block_ts > $1
                     GROUP BY relayer_id
                   ) sla_change
