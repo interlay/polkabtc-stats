@@ -4,6 +4,7 @@ import {
     getTotalIssues,
     getRecentDailyIssues,
     getPagedIssues,
+    getRecentDailyTVL,
 } from "./issueDataService";
 import { Issue } from "./issueModels";
 import { SatoshisTimeData } from "../common/commonModels";
@@ -21,6 +22,13 @@ export class IssuesController extends Controller {
     @Get("total")
     public async getTotalIssues(): Promise<string> {
         return getTotalIssues();
+    }
+
+    @Get("tvlPerTimestamp")
+    public async getTvlForTimestamps(
+        @Query() days: number[]
+    ): Promise<SatoshisTimeData[]> {
+        return getRecentDailyTVL(days);
     }
 
     @Get("recentDaily")
