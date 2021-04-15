@@ -6,6 +6,9 @@ import { BlockColumns } from "../common/columnTypes";
 @Tags("stats")
 @Route("blocks")
 export class CumulativeBlocksController extends Controller {
+    /**
+     * Retrieves a paged list of BTC blocks submitted to the relay.
+     **/
     @Get("")
     public async getBlocks(
         @Query() page = 0,
@@ -16,6 +19,9 @@ export class CumulativeBlocksController extends Controller {
         return getPagedBlocks(page, perPage, sortBy, sortAsc);
     }
 
+    /**
+     * Retrieves the total amount of blocks submitted to BTCRelay.
+     **/
     @Get("count")
     public async getTotalRelayedBlocksCount(): Promise<string> {
         return totalRelayedBlocks();

@@ -24,12 +24,18 @@ export class OracleDataController extends Controller {
         };
     })();
 
+    /**
+     * Retrieves the last update from each of the oracles in the system.
+     **/
     @Get("/submissions")
     public async getLatestSubmissionForEachOracle(): Promise<OracleStatus[]> {
         const oracleCache = await this.cachedOracleData;
         return getLatestSubmissionForEachOracle(oracleCache.onlineTimeout, oracleCache.feed, oracleCache.namesMap);
     }
 
+    /**
+     * Retrieves the latest update (from any oracle).
+     **/
     @Get("/latest")
     public async getLatestSubmission(): Promise<OracleStatus> {
         const oracleCache = await this.cachedOracleData;
