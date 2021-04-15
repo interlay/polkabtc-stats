@@ -3,10 +3,12 @@ import {
     RelayerCountTimeData,
     RelayerSlaRanking,
 } from "./relayersModel";
-import { getDurationAboveMinSla } from "../common/util";
+import { Filter, filtersToWhere, getDurationAboveMinSla } from "../common/util";
 import pool from "../common/pool";
 import { planckToDOT } from "@interlay/polkabtc";
 import logFn from '../common/logger'
+import {RelayerColumns} from "../common/columnTypes";
+import format from "pg-format";
 
 export const logger = logFn({ name: 'relayersDataService' });
 
@@ -62,6 +64,11 @@ export async function getRelayersWithTrackRecord(
 }
 
 export async function getAllRelayers(
+    page: number,
+    perPage: number,
+    sortBy: RelayerColumns,
+    sortAsc: boolean,
+    filters: Filter<RelayerColumns>[],
     slaSince: number
 ): Promise<RelayerData[]> {
     try {
@@ -69,20 +76,21 @@ export async function getAllRelayers(
             SELECT DISTINCT ON (reg.relayer_id)
                 reg.relayer_id,
                 reg.stake,
+                reg.block_number,
                 COALESCE(deregistered, FALSE) deregistered,
                 COALESCE(slashed, FALSE) slashed,
                 maturity::Integer < latestblock.block_number bonded,
                 (SELECT COUNT(DISTINCT bitcoin_hash) count
                     FROM v_parachain_stakedrelayer_store
-                    WHERE relayer_id = reg.relayer_id AND block_ts > $1) AS block_count,
+                    WHERE relayer_id = reg.relayer_id AND block_ts > $3) AS block_count,
                 lifetime_sla_change
             FROM
                 v_parachain_stakedrelayer_register reg
                 LEFT OUTER JOIN
                   (
                     SELECT relayer_id, sum(delta) as lifetime_sla_change
-                    FROM v_parachain_stakedrelayer_sla_update_v2
-                    WHERE block_ts > $1
+                    FROM v_parachain_stakedrelayer_sla_update
+                    WHERE block_ts > $3
                     GROUP BY relayer_id
                   ) sla_change
                 USING (relayer_id)
@@ -105,8 +113,13 @@ export async function getAllRelayers(
                 LEFT OUTER JOIN
                     (SELECT max(block_number) as block_number FROM parachain_events) latestblock
                 ON TRUE
-                ORDER BY reg.relayer_id, reg.block_number DESC
-            `, [new Date(slaSince)]);
+                ${filtersToWhere<RelayerColumns>(filters)}
+                ORDER BY reg.relayer_id,
+                ${format.ident(sortBy)} ${
+                    sortAsc ? "ASC" : "DESC"
+                }
+                LIMIT $1 OFFSET $2
+            `, [perPage, page * perPage, new Date(slaSince)]);
         return res.rows
             .filter((row) => !row.deregistered)
             .map((row) => ({

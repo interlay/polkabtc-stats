@@ -1,4 +1,6 @@
-import { Controller, Get, Query, Route, Tags } from "tsoa";
+import { Body, Controller, Get, Post, Query, Route, Tags } from "tsoa";
+import {VaultColumns} from "../common/columnTypes";
+import {Filter} from "../common/util";
 import {
     getRecentDailyVaults,
     getRecentDailyCollateral,
@@ -10,6 +12,11 @@ import { VaultData, VaultCountTimeData, CollateralTimeData, VaultSlaRanking } fr
 @Tags("stats")
 @Route("vaults")
 export class VaultsController extends Controller {
+    /**
+     * Gets the total number of vaults registered at midnight for the last several days
+     * Does not take into account online status, only registration.
+     * @param daysBack number of days (starting from the next midnight) to give datapoints for
+     **/
     @Get("recentDailyCounts")
     public async getRecentDailyVaultCounts(
         @Query() daysBack = 5
@@ -17,6 +24,10 @@ export class VaultsController extends Controller {
         return getRecentDailyVaults(daysBack);
     }
 
+    /**
+     * Gets the total number of collateral locked at midnight for the last several days
+     * @param daysBack number of days (starting from the next midnight) to give datapoints for
+     **/
     @Get("recentDailyCollateral")
     public async getRecentDailyCollateralLocked(
         @Query() daysBack = 5
@@ -24,6 +35,11 @@ export class VaultsController extends Controller {
         return getRecentDailyCollateral(daysBack);
     }
 
+    /**
+     * Returns a list of vaults with a minimum SLA track record, as specified by the parameters.
+     * @param minSla the SLA theshold to consider
+     * @param minConsecutivePeriod the duration above which the relayer must have had SLA above minSLA (in miliseconds)
+     **/
     @Get("vaultsWithTrackRecord")
     public async listVaultsWithTrackRecord(
         @Query() minSla = 0,
@@ -33,14 +49,30 @@ export class VaultsController extends Controller {
     }
 
     /**
-     * Retrieves a full list of vaults, along with the unbounded sum SLA scores
+     * Retrieves a paged list of vaults, along with the unbounded sum SLA scores
      * after a given cutoff.
      * @param slaSince A UNIX timestamp starting from which the SLA score will be summed.
      **/
     @Get("")
     public async getVaults(
+        @Query() page = 0,
+        @Query() perPage = 20,
+        @Query() sortBy: VaultColumns = "block_number",
+        @Query() sortAsc = false,
         @Query() slaSince: number
     ): Promise<VaultData[]> {
-        return getAllVaults(slaSince);
+        return getAllVaults(page, perPage, sortBy, sortAsc, [], slaSince);
+    }
+
+    @Post("")
+    public async getFilteredVaults(
+        @Query() page = 0,
+        @Query() perPage = 20,
+        @Query() sortBy: VaultColumns = "block_number",
+        @Query() sortAsc = false,
+        @Body() filters: Filter<VaultColumns>[] = [],
+        @Query() slaSince: number
+    ): Promise<VaultData[]> {
+        return getAllVaults(page, perPage, sortBy, sortAsc, filters, slaSince);
     }
 }
