@@ -29,7 +29,10 @@ export function filtersToWhere<C extends Colmuns>(filters: Filter<C>[]) {
             (cond, filter) =>
                 cond +
                 `${format.ident(filter.column)} ${
-                    filter.comparison || "="
+                    filter.comparison &&
+                    ["=", "<", ">"].includes(filter.comparison)
+                        ? filter.comparison
+                        : "="
                 } ${format.literal(filter.value)} AND `,
             "WHERE "
         )
