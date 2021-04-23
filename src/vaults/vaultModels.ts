@@ -7,7 +7,7 @@ export interface CollateralTimeData {
 
 export interface VaultCountTimeData {
     date: number;
-    count: number;
+    count: string;
 }
 
 export interface VaultData {

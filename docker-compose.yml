@@ -1,0 +1,50 @@
+version: '3.8'
+services:
+  postgres:
+    image: 'postgres:13'
+    environment:
+      POSTGRES_USER: 'user'
+      POSTGRES_PASSWORD: ''
+    ports:
+      - '5432:5432'
+  psql:
+    image: 'postgres:13'
+    command:
+      - /bin/sh
+      - -c
+      - |
+        sleep 10
+        psql --host=postgres --username=user -w < /var/pg-dump.sql
+    volumes:
+      - ${PWD}/pg-dump.sql:/var/pg-dump.sql
+  polkabtc:
+    image: 'registry.gitlab.com/interlay/btc-parachain/standalone:0.6.1'
+    command:
+      - btc-parachain
+      - --unsafe-rpc-external
+      - --unsafe-ws-external
+      - --rpc-methods
+      - Unsafe
+      - --dev
+    ports:
+      - '9933:9933'
+      - '9944:9944'
+  # electrs:
+  #   image: 'interlayhq/electrs:latest'
+  #   command:
+  #     - electrs
+  #     - -v
+  #     - --network
+  #     - regtest
+  #     - --jsonrpc-import
+  #     - --cors
+  #     - '*'
+  #     - --cookie
+  #     - 'rpcuser:rpcpassword'
+  #     - --daemon-rpc-addr
+  #     - bitcoind:18443
+  #     - --http-addr
+  #     - '[::0]:3002'
+  #     - --index-unspendables
+  #   ports:
+  #     - '3002:3002'

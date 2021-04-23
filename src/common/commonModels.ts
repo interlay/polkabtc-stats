@@ -5,7 +5,7 @@ export interface TimeDataPoint {
 
 export interface SatoshisTimeData {
     date: number;
-    sat: number;
+    sat: string;
 };
 
 export interface DistributionStats {
