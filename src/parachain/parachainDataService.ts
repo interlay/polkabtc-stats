@@ -147,8 +147,8 @@ export async function getPagedStatusUpdates(
                 suggest.btc_block_hash,
                 (SELECT COUNT(*) FROM v_parachain_status_vote WHERE approve = 'true' AND update_id = suggest.update_id GROUP BY update_id) AS yeas,
                 (SELECT COUNT(*) FROM v_parachain_status_vote WHERE approve = 'false' AND update_id = suggest.update_id GROUP BY update_id) AS nays,
-                coalesce((SELECT TRUE AS executed FROM "v_parachain_status_execute" WHERE update_id = suggest.update_id), FALSE) AS executed,
-                coalesce((SELECT TRUE AS rejected FROM "v_parachain_status_reject" WHERE update_id = suggest.update_id), FALSE) AS rejected,
+                coalesce((SELECT DISTINCT TRUE AS executed FROM "v_parachain_status_execute" WHERE update_id = suggest.update_id), FALSE) AS executed,
+                coalesce((SELECT DISTINCT TRUE AS rejected FROM "v_parachain_status_reject" WHERE update_id = suggest.update_id), FALSE) AS rejected,
                 FALSE AS forced
             FROM
                 "v_parachain_status_suggest" AS suggest
