@@ -4,6 +4,7 @@ import {
     getTotalIssues,
     getRecentDailyIssues,
     getPagedIssues,
+    getRecentDailyTVL,
 } from "./issueDataService";
 import { Issue } from "./issueModels";
 import { SatoshisTimeData } from "../common/commonModels";
@@ -13,16 +14,37 @@ import { IssueColumns } from "../common/columnTypes";
 @Tags("stats")
 @Route("issues")
 export class IssuesController extends Controller {
+    /**
+     * Returns the total count of successfully executed issues.
+     **/
     @Get("totalSuccessful")
     public async getTotalSuccessfulIssues(): Promise<string> {
         return getTotalSuccessfulIssues();
     }
 
+    /**
+     * Returns the total count of issue requests (regardless of execution).
+     **/
     @Get("total")
     public async getTotalIssues(): Promise<string> {
         return getTotalIssues();
     }
 
+    /**
+     * Retrieves the total value locked (i.e. polkaBTC issued - redeemed), snapshotted at the given timestamps.
+     * @param days an array of timestamps, in miliseconds since the UNIX epoch
+     **/
+    @Get("tvlPerTimestamp")
+    public async getTvlForTimestamps(
+        @Query() days: number[]
+    ): Promise<SatoshisTimeData[]> {
+        return getRecentDailyTVL(days);
+    }
+
+    /**
+     * Gets the total amount issued before midnight for the last several days
+     * @param daysBack number of days (starting from the next midnight) to give datapoints for
+     **/
     @Get("recentDaily")
     public async getRecentDailyIssues(
         @Query() daysBack = 5
@@ -30,6 +52,11 @@ export class IssuesController extends Controller {
         return getRecentDailyIssues(daysBack);
     }
 
+    /**
+     * Retrieves a paged list of issue requests.
+     * @param network the BTC network used for issue transactions; necessary to correctly
+     * decode vault addresses and transaction IDs.
+     **/
     @Get("")
     public async getIssues(
         @Query() page = 0,

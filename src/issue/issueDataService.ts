@@ -84,6 +84,50 @@ export async function getTotalIssues(): Promise<string> {
     }
 }
 
+export async function getRecentDailyTVL(
+    days: number[]
+): Promise<SatoshisTimeData[]> {
+    try {
+        return (await pool.query(
+        `
+            SELECT date, (issue - redeem) sat FROM
+            (
+                SELECT
+                    extract(epoch from d.timestamp) * 1000 as date,
+                    COALESCE(SUM(
+                        (iex.amount_btc::BIGINT - ireq.fee_polkabtc::BIGINT)
+                    ), 0) issue
+                FROM
+                    unnest($1::TIMESTAMP[]) d
+                    LEFT OUTER JOIN v_parachain_data_execute_issue iex
+                    LEFT OUTER JOIN v_parachain_data_request_issue ireq USING (issue_id)
+                        ON d.timestamp >= iex.block_ts::timestamp
+                GROUP BY 1
+                ORDER BY 1 ASC
+            ) i
+            JOIN
+            (
+                SELECT
+                    extract(epoch from d.timestamp) * 1000 as date,
+                    COALESCE(SUM((rex.amount_polka_btc::BIGINT - rex.fee_polkabtc::BIGINT)
+                    ), 0) redeem
+                FROM
+                    unnest($1::TIMESTAMP[]) d
+                    LEFT OUTER JOIN v_parachain_redeem_execute rex
+                    LEFT OUTER JOIN v_parachain_redeem_cancel rcan USING (redeem_id)
+                        ON d.timestamp >= rex.block_ts::timestamp
+                    WHERE (rcan.reimbursed IS NULL OR rcan.reimbursed = 'true')
+                GROUP BY 1
+                ORDER BY 1 ASC
+            ) r USING (date)
+        `
+            , [days.map(ts => new Date(ts))])).rows;
+    } catch (e) {
+        logger.error(e);
+        throw e;
+    }
+}
+
 export async function getRecentDailyIssues(
     daysBack: number
 ): Promise<SatoshisTimeData[]> {
