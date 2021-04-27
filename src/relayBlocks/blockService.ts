@@ -11,7 +11,7 @@ export async function getPagedBlocks(
     sortAsc: boolean
 ): Promise<BtcBlock[]> {
     const res = await pool.query(`
-        SELECT DISTINCT ON (hash)
+        SELECT DISTINCT
             ("event_data" ->> 0)::INTEGER AS height, "event_data" ->> 1 AS "hash", "block_ts" AS "relay_ts"
         FROM "v_parachain_data"
         WHERE "section"='btcRelay'::text AND "method"='StoreMainChainHeader'::text
