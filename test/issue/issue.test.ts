@@ -13,25 +13,25 @@ import {getUTCMidnight} from "../util";
 describe("Issue", () => {
     it("should return the count of successful issues", async () => {
         const successfulCount = await getTotalSuccessfulIssues();
-        const expected = "1829";
+        const expected = "1504";
         return assert.equal(successfulCount, expected);
     });
 
     it("should return the total count of issues", async () => {
         const totalCount = await getTotalIssues();
-        const expected = "4061";
+        const expected = "3516";
         return assert.equal(totalCount, expected);
     });
 
     it("should return the amount of issues during the past five days", async () => {
         const dailyAmount = await getRecentDailyIssues(3);
-        const satoshi = "4203201358";
+        const satoshi = "3093882237";
         const nextMidnight = getUTCMidnight(new Date()).getTime();
         const expected = Array.from({length: 4}, (_, idx) => ({date: nextMidnight - (idx * 86400 * 1000), sat: satoshi} as SatoshisTimeData)).reverse();
         return assert.deepEqual(dailyAmount, expected);
     });
 
-    it.skip("should return the latest 15 issues", async () => {
+    it.skip("should return the latest 5 issues", async () => {
         const successfulCount = await getPagedIssues(
             0,
             15,

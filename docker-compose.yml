@@ -4,7 +4,7 @@ services:
     image: 'postgres:13'
     environment:
       POSTGRES_USER: 'user'
-      POSTGRES_PASSWORD: ''
+      POSTGRES_PASSWORD: 'password'
     ports:
       - '5432:5432'
   psql:
@@ -14,9 +14,11 @@ services:
       - -c
       - |
         sleep 10
-        psql --host=postgres --username=user -w < /var/pg-dump.sql
+        psql --host=postgres --username=user -w < /var/pg-testdata.sql
     volumes:
-      - ${PWD}/pg-dump.sql:/var/pg-dump.sql
+      - ${PWD}/pg-testdata.sql:/var/pg-testdata.sql
+    environment:
+      PGPASSWORD: 'password'
   polkabtc:
     image: 'registry.gitlab.com/interlay/btc-parachain/standalone:0.6.1'
     command:

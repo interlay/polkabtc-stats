@@ -10,55 +10,45 @@ import {getUTCMidnight} from "../util";
 describe("Relayers", () => {
     it("should return the relayer counts for the last three days", async () => {
         const recentDailyCounts = await getRecentDailyRelayers(3);
-        const count = 94;
+        const count = 74;
         const nextMidnight = getUTCMidnight(new Date()).getTime();
         const expected = Array.from({length: 4}, (_, idx) => ({date: nextMidnight - (idx * 86400 * 1000), count} as RelayerCountTimeData)).reverse();
         return assert.deepEqual(recentDailyCounts, expected);
     });
 
     it("should return all relayers above an SLA threshold", async () => {
-        const relayers = await getRelayersWithTrackRecord(90, 1209600 * 1000);
+        const relayers = await getRelayersWithTrackRecord(70, 86400 * 7 * 1000);
         const expected = [
             {
-                id: '5DNzULM1UJXDM7NUgDL4i8Hrhe9e3vZkB3ByM1eEXMGAs4Bv',
-                duration: 1781640000,
-                threshold: 90
+                id: "5EZL3AtPujxbsKTXNMuKGUXoHcwVR5eryjBLbXCh4jMjoShs",
+                duration: 838098332,
+                threshold: 70
             },
             {
-                id: '5EHvPFaei9Ca32WFaCrHeuMLPmMzjMLExGSRLCYrbNCubuc1',
-                duration: 1319136000,
-                threshold: 90
+                id: "5Fy7WepFMJC3rzu48ZAcKGATgCyAwoZr65ZZYuDda8ZabWG1",
+                duration: 658271878,
+                threshold: 70
             },
             {
-                id: '5EhYmqeCq3aSjSbg27dyVuL7w2zi7p37szaWLLcV7dJ85tx9',
-                duration: 1749036000,
-                threshold: 90
+                id: "5GbsQTMojZxQKrE6ZGBikPL2xUbQDgacrv2ayMcQZhttQYYM",
+                duration: 1673406000,
+                threshold: 70
             },
             {
-                id: '5FUgMUK3dPZ1kYXHVfYkT8wiAay6nhKeuuNFDwPgAWjdScTX',
-                duration: 1742232000,
-                threshold: 90
+                id: "5GxiJMth1RLJBLVkZAgEg8CCgpaR8jrGuJGhxSvGkrR8BRTt",
+                duration: 649062000,
+                threshold: 70
             },
             {
-                id: '5FYfd4ad2eXVQTDH91stzT78T2mn1i2CtPPGKfgRahKpfCcd',
-                duration: 1335390000,
-                threshold: 90
+                id: "5HHRtmnBc5Hgb4vrdaHFB5CVErGYLzFQ4VZ8PtokjE9AhPwg",
+                duration: 1786458000,
+                threshold: 70
             },
             {
-                id: '5G93b8L8urnJCBYDyEcu2LQa6JvZ61cHMNQsyJ7RdmGKkqcy',
-                duration: 1581084000,
-                threshold: 90
+                id: "5HYJpFhDaQVvp59GvfF1Rwk9jAsSMRs1hCKoYUDzXKfZL5T1",
+                duration: 790806000,
+                threshold: 70
             },
-            {
-                id: '5GEXRnnv8Qz9rEwMs4TfvHme48HQvVTEDHJECCvKPzFB4pFZ',
-                duration: 1868382000,
-                threshold: 90
-            },
-            {
-                id: '5HmDjMNozF4cUidXQp3xRRCcmmSpr6hsrt8PbNX4CC3YbaYj',
-                duration: 1366428000,
-                threshold: 90
-            }
         ];
         return assert.deepEqual(relayers, expected)
     });
@@ -71,7 +61,7 @@ describe("Relayers", () => {
                 stake: '0.8',
                 bonded: true,
                 slashed: false,
-                lifetime_sla: null,
+                lifetime_sla: '0',
                 block_count: '0'
             },
             {
@@ -79,7 +69,7 @@ describe("Relayers", () => {
                 stake: '0.8',
                 bonded: true,
                 slashed: false,
-                lifetime_sla: null,
+                lifetime_sla: '0',
                 block_count: '0'
             },
             {
@@ -87,7 +77,7 @@ describe("Relayers", () => {
                 stake: '0.8',
                 bonded: true,
                 slashed: false,
-                lifetime_sla: null,
+                lifetime_sla: '0',
                 block_count: '0'
             },
             {
@@ -95,15 +85,15 @@ describe("Relayers", () => {
                 stake: '0.8',
                 bonded: true,
                 slashed: false,
-                lifetime_sla: null,
+                lifetime_sla: '0',
                 block_count: '0'
             },
             {
-                id: '5CaM5Uoarf4umeakqyoBMu9DdFzeZTx9asSa4XrxdnZRv6BL',
-                stake: '0.8',
+                id: '5CDiu7iWKrCRcjiKWmtBDwk51UfjnoCaYEmmofegLkKjGBMG',
+                stake: '100',
                 bonded: true,
                 slashed: false,
-                lifetime_sla: null,
+                lifetime_sla: '0',
                 block_count: '0'
             },
         ];

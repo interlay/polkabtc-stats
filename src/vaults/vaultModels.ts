@@ -2,7 +2,7 @@ import { DistributionStats } from "../common/commonModels";
 
 export interface CollateralTimeData {
     date: number;
-    amount: number;
+    amount: string;
 }
 
 export interface VaultCountTimeData {

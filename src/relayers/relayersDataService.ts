@@ -83,7 +83,7 @@ export async function getAllRelayers(
                 (SELECT COUNT(DISTINCT bitcoin_hash) count
                     FROM v_parachain_stakedrelayer_store
                     WHERE relayer_id = reg.relayer_id AND block_ts > $3) AS block_count,
-                lifetime_sla_change
+                COALESCE(lifetime_sla_change, 0) lifetime_sla_change
             FROM
                 v_parachain_stakedrelayer_register reg
                 LEFT OUTER JOIN
@@ -123,7 +123,6 @@ export async function getAllRelayers(
         return res.rows
             .filter((row) => !row.deregistered)
             .map((row) => {
-                console.log(row);
                 return {
                     id: row.relayer_id,
                     stake: planckToDOT(row.stake),

@@ -230,7 +230,7 @@ export async function getRecentDailyCollateral(
                         ) as un
                     WHERE block_ts < '${ts}'`
             )
-        ).map((row) => ({ date: row.date, amount: row.value }));
+        ).map((row) => ({ date: row.date, amount: row.value.toString() }));
     } catch (e) {
         logger.error(e);
         throw e;
