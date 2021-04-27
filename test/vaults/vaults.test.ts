@@ -107,7 +107,5 @@ describe("Vaults", () => {
             },
         ];
         assert.deepEqual(vaults, expected as unknown as VaultData[]);
-        return false;
-        //TODO: fix vault SLA in database
     });
 });
