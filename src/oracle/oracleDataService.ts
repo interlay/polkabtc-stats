@@ -16,29 +16,34 @@ export async function getLatestSubmissionForEachOracle(
     namesMap: Map<string, string>
 ): Promise<OracleStatus[]> {
     try {
-        const res = await pool.query(`
-            SELECT DISTINCT oracle_id, exchange_rate, block_ts
-            FROM v_parachain_oracle_set_exchange_rate main
-            WHERE block_ts = (
-                SELECT MAX(block_ts) 
-                FROM v_parachain_oracle_set_exchange_rate v 
-                WHERE v.oracle_id = main.oracle_id
-            )
-        `);
+        const lastOracleUpdate = await pool.query(`SELECT oracle_id, MAX(block_number) AS block_number
+            FROM v_parachain_oracle_set_exchange_rate
+            GROUP BY oracle_id;`)
+
         const offlineStatusThreshold = computeOfflineStatusThreshold(onlineTimeout);
-        return Promise.all(res.rows.map(async (row) => {
-            const submissionMilliseconds = new Date(row.block_ts).getTime();
-            const offlineOracleMilliseconds = offlineStatusThreshold.getTime();
-            const online = submissionMilliseconds >= offlineOracleMilliseconds;
-            return {
-                id: row.oracle_id,
-                source: namesMap.get(row.oracle_id) || "",
-                feed,
-                lastUpdate: new Date(row.block_ts),
-                exchangeRate: hexStringFixedPointToBig(row.exchange_rate).toString(),
-                online,
-            };
-        }));
+
+        return Promise.all(lastOracleUpdate.rows.map(async lastUpdateBlock => {
+
+            const res = await pool.query(`
+            SELECT oracle_id, exchange_rate, block_ts
+            FROM v_parachain_oracle_set_exchange_rate
+            WHERE block_number = $1 and oracle_id = $2
+        `, [lastUpdateBlock.block_number, lastUpdateBlock.oracle_id]);
+
+            return res.rows.map(async (row) => {
+                const submissionMilliseconds = new Date(row.block_ts).getTime();
+                const offlineOracleMilliseconds = offlineStatusThreshold.getTime();
+                const online = submissionMilliseconds >= offlineOracleMilliseconds;
+                return {
+                    id: row.oracle_id,
+                    source: namesMap.get(row.oracle_id) || "",
+                    feed,
+                    lastUpdate: new Date(row.block_ts),
+                    exchangeRate: hexStringFixedPointToBig(row.exchange_rate).toString(),
+                    online,
+                };
+            })[0]
+        }))
     } catch (e) {
         logger.error(e);
         throw e;
