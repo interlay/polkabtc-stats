@@ -42,4 +42,29 @@ export type StatusUpdateColumns =
 
 export type BlockColumns = "height" | "hash" | "relay_ts";
 
-export type Colmuns = IssueColumns | RedeemColumns | StatusUpdateColumns | BlockColumns;
+export type VaultColumns =
+    | "vault_id"
+    | "block_number"
+    | "collateral"
+    | "request_issue_count"
+    | "execute_issue_count"
+    | "request_redeem_count"
+    | "execute_redeem_count"
+    | "cancel_redeem_count"
+    | "lifetime_sla_change";
+export type RelayerColumns =
+    | "relayer_id"
+    | "block_number"
+    | "stake"
+    | "deregistered"
+    | "slashed"
+    | "bonded"
+    | "lifetime_sla_change";
+
+export type Colmuns =
+    | IssueColumns
+    | RedeemColumns
+    | StatusUpdateColumns
+    | BlockColumns
+    | VaultColumns
+    | RelayerColumns;

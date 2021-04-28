@@ -10,6 +10,9 @@ import { ParachainStatusUpdate } from "./parachainModels";
 @Tags("stats")
 @Route("statusUpdates")
 export class ParachainController extends Controller {
+    /**
+     * Retrieves a paged list of parachain status updates.
+     **/
     @Get("")
     public async getParachainStatusUpdates(
         @Query() page = 0,
@@ -31,6 +34,9 @@ export class ParachainController extends Controller {
         return getPagedStatusUpdates(page, perPage, sortBy, sortAsc, filters);
     }
 
+    /**
+     * Gets the total count of status updates submitted (regardless of voting status).
+     **/
     @Get("total")
     public async getTotalParachainStatusUpdates(): Promise<string> {
         return getTotalStatusUpdates();

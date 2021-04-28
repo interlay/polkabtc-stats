@@ -5,6 +5,8 @@ import {
     VaultSlaRanking,
 } from "./vaultModels";
 import {
+    Filter,
+    filtersToWhere,
     getDurationAboveMinSla,
     hexStringFixedPointToBig,
     runPerDayQuery,
@@ -14,6 +16,8 @@ import Big from "big.js";
 import { planckToDOT } from "@interlay/polkabtc";
 import logFn from "../common/logger";
 import { VaultStats } from "./vaultModels";
+import {VaultColumns} from "../common/columnTypes";
+import format from "pg-format";
 
 export const logger = logFn({ name: "vaultDataService" });
 
@@ -233,7 +237,14 @@ export async function getRecentDailyCollateral(
     }
 }
 
-export async function getAllVaults(slaSince: number): Promise<VaultData[]> {
+export async function getAllVaults(
+    page: number,
+    perPage: number,
+    sortBy: VaultColumns,
+    sortAsc: boolean,
+    filters: Filter<VaultColumns>[],
+    slaSince: number
+): Promise<VaultData[]> {
     try {
         const res = await pool.query(
             `
@@ -241,12 +252,12 @@ export async function getAllVaults(slaSince: number): Promise<VaultData[]> {
         reg.vault_id,
         reg.block_number,
         reg.collateral,
-        (SELECT COUNT(DISTINCT issue_id) count FROM v_parachain_data_request_issue WHERE vault_id = reg.vault_id AND block_ts > $1) AS request_issue_count,
-        (SELECT COUNT(DISTINCT issue_id) count FROM v_parachain_data_execute_issue WHERE vault_id = reg.vault_id AND block_ts > $1) AS execute_issue_count,
-        (SELECT COUNT(DISTINCT redeem_id) count FROM v_parachain_redeem_request WHERE vault_id = reg.vault_id AND block_ts > $1) AS request_redeem_count,
-        (SELECT COUNT(DISTINCT redeem_id) count FROM v_parachain_redeem_execute WHERE vault_id = reg.vault_id AND block_ts > $1) AS execute_redeem_count,
-        (SELECT COUNT(DISTINCT redeem_id) count FROM v_parachain_redeem_cancel WHERE vault_id = reg.vault_id AND block_ts > $1) AS cancel_redeem_count,
-        coalesce((SELECT sum(delta) as lifetime_sla_change FROM v_parachain_vault_sla_update_v2 WHERE vault_id = reg.vault_id AND block_ts > $1 GROUP BY vault_id), 0) AS lifetime_sla_change
+        (SELECT COUNT(DISTINCT issue_id) count FROM v_parachain_data_request_issue WHERE vault_id = reg.vault_id AND block_ts > $3) AS request_issue_count,
+        (SELECT COUNT(DISTINCT issue_id) count FROM v_parachain_data_execute_issue WHERE vault_id = reg.vault_id AND block_ts > $3) AS execute_issue_count,
+        (SELECT COUNT(DISTINCT redeem_id) count FROM v_parachain_redeem_request WHERE vault_id = reg.vault_id AND block_ts > $3) AS request_redeem_count,
+        (SELECT COUNT(DISTINCT redeem_id) count FROM v_parachain_redeem_execute WHERE vault_id = reg.vault_id AND block_ts > $3) AS execute_redeem_count,
+        (SELECT COUNT(DISTINCT redeem_id) count FROM v_parachain_redeem_cancel WHERE vault_id = reg.vault_id AND block_ts > $3) AS cancel_redeem_count,
+        coalesce((SELECT sum(delta) as lifetime_sla_change FROM v_parachain_vault_sla_update WHERE vault_id = reg.vault_id AND block_ts > $3 GROUP BY vault_id), 0) AS lifetime_sla_change
         FROM (
             SELECT vault_id, collateral, block_number
             FROM v_parachain_vault_registration
@@ -254,9 +265,14 @@ export async function getAllVaults(slaSince: number): Promise<VaultData[]> {
             SELECT vault_id, total_collateral, block_number
             FROM v_parachain_vault_collateral
         ) reg
-        ORDER BY reg.vault_id, reg.block_number DESC
+        ${filtersToWhere<VaultColumns>(filters)}
+        ORDER BY reg.vault_id DESC,
+        ${format.ident(sortBy)} ${
+            sortAsc ? "ASC" : "DESC"
+        }
+        LIMIT $1 OFFSET $2
         `,
-            [new Date(slaSince)]
+            [perPage, page * perPage, new Date(slaSince)]
         );
         return res.rows.map((row) => ({
             id: row.vault_id,

@@ -14,21 +14,34 @@ import { RedeemColumns } from "../common/columnTypes";
 @Tags("stats")
 @Route("redeems")
 export class RedeemsController extends Controller {
+    /**
+     * Returns the total count of successfully executed redeems.
+     **/
     @Get("totalSuccessful")
     public async getTotalSuccessfulRedeems(): Promise<string> {
         return getTotalSuccessfulRedeems();
     }
 
+    /**
+     * Returns the total count of redeem requests (regardless of execution).
+     **/
     @Get("total")
     public async getTotalRedeems(): Promise<string> {
         return getTotalRedeems();
     }
 
+    /**
+     * Retrieves the total value of polkaBTC successfully redeemed (all time).
+     **/
     @Get("totalAmount")
     public async getTotalRedeemedAmount(): Promise<string> {
         return getTotalAmount();
     }
 
+    /**
+     * Gets the total amount redeemed before midnight for the last several days
+     * @param daysBack number of days (starting from the next midnight) to give datapoints for
+     **/
     @Get("recentDaily")
     public async getRecentDailyRedeems(
         @Query() daysBack = 5
@@ -47,6 +60,11 @@ export class RedeemsController extends Controller {
         return getPagedRedeems(page, perPage, sortBy, sortAsc, [], network);
     }
 
+    /**
+     * Retrieves a paged list of issue requests.
+     * @param network the BTC network used for redeem transactions; necessary to correctly
+     * decode vault addresses and transaction IDs.
+     **/
     @Post("")
     public async getFilteredRedeems(
         @Query() page = 0,
