@@ -46,7 +46,7 @@ export async function getRelayersWithTrackRecord(
                 relayer_id,
                 json_agg(row(new_sla, block_ts)) as sla_changes
             FROM v_parachain_stakedrelayer_sla_update
-            GROUP BY vault_id
+            GROUP BY relayer_id
             `);
         const reducedRows: RelayerSlaRanking[] = res.rows.map((row) => ({
             id: row.relayer_id,
@@ -83,14 +83,14 @@ export async function getAllRelayers(
                 (SELECT COUNT(DISTINCT bitcoin_hash) count
                     FROM v_parachain_stakedrelayer_store
                     WHERE relayer_id = reg.relayer_id AND block_ts > $3) AS block_count,
-                lifetime_sla_change
+                COALESCE(lifetime_sla_change, 0) lifetime_sla_change
             FROM
                 v_parachain_stakedrelayer_register reg
                 LEFT OUTER JOIN
                   (
-                    SELECT relayer_id, sum(delta) as lifetime_sla_change
+                    SELECT relayer_id, sum(delta::BIGINT) as lifetime_sla_change
                     FROM v_parachain_stakedrelayer_sla_update
-                    WHERE block_ts > $3
+                    WHERE block_ts > $3 AND delta NOT LIKE '0x%'
                     GROUP BY relayer_id
                   ) sla_change
                 USING (relayer_id)

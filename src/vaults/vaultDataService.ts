@@ -257,7 +257,7 @@ export async function getAllVaults(
         (SELECT COUNT(DISTINCT redeem_id) count FROM v_parachain_redeem_request WHERE vault_id = reg.vault_id AND block_ts > $3) AS request_redeem_count,
         (SELECT COUNT(DISTINCT redeem_id) count FROM v_parachain_redeem_execute WHERE vault_id = reg.vault_id AND block_ts > $3) AS execute_redeem_count,
         (SELECT COUNT(DISTINCT redeem_id) count FROM v_parachain_redeem_cancel WHERE vault_id = reg.vault_id AND block_ts > $3) AS cancel_redeem_count,
-        coalesce((SELECT sum(delta) as lifetime_sla_change FROM v_parachain_vault_sla_update WHERE vault_id = reg.vault_id AND block_ts > $3 GROUP BY vault_id), 0) AS lifetime_sla_change
+        coalesce((SELECT sum(delta::BIGINT) as lifetime_sla_change FROM v_parachain_vault_sla_update WHERE vault_id = reg.vault_id AND block_ts > $3 AND delta NOT LIKE '0x%' GROUP BY vault_id), 0) AS lifetime_sla_change
         FROM (
             SELECT vault_id, collateral, block_number
             FROM v_parachain_vault_registration
