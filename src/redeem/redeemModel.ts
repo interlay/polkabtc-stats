@@ -6,7 +6,7 @@ export interface Redeem {
     amountPolkaBTC: string;
     feePolkabtc: string;
     dotPremium: string;
-    creation: string;
+    creation: number;
     timestamp: string;
     vaultDotAddress: string;
     btcAddress: string;

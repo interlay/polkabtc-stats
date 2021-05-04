@@ -7,7 +7,7 @@ export interface Issue {
     feePolkabtc: string;
     griefingCollateral: string;
     vaultWalletPubkey: string;
-    creation: string;
+    creation: number;
     timestamp: string;
     vaultBTCAddress: string;
     vaultDOTAddress: string;

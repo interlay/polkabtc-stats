@@ -88,8 +88,9 @@ export async function getRecentDailyTVL(
     days: number[]
 ): Promise<SatoshisTimeData[]> {
     try {
-        return (await pool.query(
-        `
+        return (
+            await pool.query(
+                `
             SELECT date, (issue - redeem) sat FROM
             (
                 SELECT
@@ -120,8 +121,10 @@ export async function getRecentDailyTVL(
                 GROUP BY 1
                 ORDER BY 1 ASC
             ) r USING (date)
-        `
-            , [days.map(ts => new Date(ts))])).rows;
+        `,
+                [days.map((ts) => new Date(ts))]
+            )
+        ).rows;
     } catch (e) {
         logger.error(e);
         throw e;
@@ -143,7 +146,7 @@ export async function getRecentDailyIssues(
         ORDER BY 1 ASC`,
                 [daysBack]
             )
-        ).rows;
+        ).rows.map((row) => ({ ...row, sat: Number(row.sat) }));
     } catch (e) {
         logger.error(e);
         throw e;
@@ -213,7 +216,7 @@ export async function getPagedIssues(
                     feePolkabtc: satToBTC(row.fee_polkabtc),
                     griefingCollateral: planckToDOT(row.griefing_collateral),
                     vaultWalletPubkey: stripHexPrefix(row.vault_wallet_pubkey),
-                    creation: row.block_number.toString(),
+                    creation: Number(row.block_number),
                     timestamp: row.block_ts.getTime().toString(),
                     vaultBTCAddress,
                     vaultDOTAddress: row.vault_id,
