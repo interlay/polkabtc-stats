@@ -15,12 +15,12 @@ export async function getPagedBlocks(
             ("event_data" ->> 0)::INTEGER AS height, "event_data" ->> 1 AS "hash", "block_ts" AS "relay_ts"
         FROM "v_parachain_data"
         WHERE "section"='btcRelay'::text AND "method"='StoreMainChainHeader'::text
-        ORDER BY ${format.ident(sortBy)} ${sortAsc ? "ASC" : "DESC"}
+        ORDER BY hash, ${format.ident(sortBy)} ${sortAsc ? "ASC" : "DESC"}
         LIMIT $1 OFFSET $2
         `, [perPage, page * perPage]
     );
     return res.rows.map((row) => ({
-        height: row.height,
+        height: row.height.toString(),
         hash: stripHexPrefix(row.hash),
         relay_ts: row.relay_ts,
     }));

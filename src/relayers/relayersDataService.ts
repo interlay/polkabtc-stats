@@ -122,14 +122,16 @@ export async function getAllRelayers(
             `, [perPage, page * perPage, new Date(slaSince)]);
         return res.rows
             .filter((row) => !row.deregistered)
-            .map((row) => ({
-                id: row.relayer_id,
-                stake: planckToDOT(row.stake),
-                bonded: row.bonded,
-                slashed: row.slashed,
-                lifetime_sla: row.lifetime_sla_change,
-                block_count: row.block_count,
-            }));
+            .map((row) => {
+                return {
+                    id: row.relayer_id,
+                    stake: planckToDOT(row.stake),
+                    bonded: row.bonded,
+                    slashed: row.slashed,
+                    lifetime_sla: row.lifetime_sla_change,
+                    block_count: row.block_count,
+                };
+            });
     } catch (e) {
         logger.error(e);
         throw e;

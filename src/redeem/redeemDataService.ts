@@ -125,7 +125,7 @@ export async function getRecentDailyRedeems(
             `,
                 [daysBack]
             )
-        ).rows.map((row) => ({ date: row.date, sat: row.sat }));
+        ).rows.map((row) => ({ ...row, sat: Number(row.sat) }));
     } catch (e) {
         logger.error(e);
         throw e;
@@ -187,8 +187,8 @@ export async function getPagedRedeems(
                     amountPolkaBTC: satToBTC(row.amount_polka_btc),
                     feePolkabtc: satToBTC(row.fee_polkabtc),
                     dotPremium: planckToDOT(row.dot_premium),
-                    creation: row.block_number,
-                    timestamp: row.block_ts,
+                    creation: Number(row.block_number),
+                    timestamp: row.block_ts.getTime().toString(),
                     btcAddress: userBtcAddress,
                     vaultDotAddress: row.vault_id,
                     btcTxId: txid,

@@ -1,8 +1,9 @@
 import { DistributionStats } from "../common/commonModels";
+import BN from "bn.js";
 
 export interface CollateralTimeData {
     date: number;
-    amount: number;
+    amount: BN;
 }
 
 export interface VaultCountTimeData {
@@ -35,6 +36,6 @@ export interface VaultStats {
         count: number;
         btcFraction: number;
         dotFraction: number;
-    },
+    };
     collateralDistribution: DistributionStats;
 }

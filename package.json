@@ -1,6 +1,6 @@
 {
     "name": "@interlay/polkabtc-stats",
-    "version": "0.2.0",
+    "version": "0.2.2",
     "license": "Apache-2.0",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
@@ -13,7 +13,8 @@
         "build:client": "openapi-generator-cli generate -i build/swagger.json -g typescript-axios -o client",
         "compile:client": "tsc -d client/*.ts --outdir dist",
         "client": "yarn build:client && yarn compile:client",
-        "start": "node -r dotenv/config build/src/server.js"
+        "start": "node -r dotenv/config build/src/server.js",
+        "test": "PGDATABASE=\"polkabtc_standalone\" PGUSER=\"user\" PGPASSWORD=\"password\" mocha test/**/*.test.ts --timeout 60000"
     },
     "dependencies": {
         "@interlay/polkabtc": "0.11.2",
@@ -40,15 +41,19 @@
     "devDependencies": {
         "@openapitools/openapi-generator-cli": "^2.1.17",
         "@types/body-parser": "^1.19.0",
+        "@types/chai": "^4.2.17",
         "@types/express": "^4.17.11",
         "@types/express-pino-logger": "^4.0.2",
         "@types/lodash": "^4.14.168",
+        "@types/mocha": "^8.2.2",
         "@types/node": "^14.14.20",
         "@types/pg": "^7.14.8",
         "@types/pino": "^6.3.6",
         "@types/swagger-ui-express": "^4.1.2",
         "axios": "^0.21.1",
+        "chai": "^4.3.4",
         "concurrently": "^5.3.0",
+        "mocha": "^8.3.2",
         "nodemon": "^2.0.7",
         "pino-pretty": "^4.6.0",
         "ts-node": "^9.1.1",
@@ -57,5 +62,10 @@
     "prettier": {
         "singleQuote": false,
         "tabWidth": 4
+    },
+    "mocha": {
+        "reporter": "spec",
+        "require": "ts-node/register",
+        "recursive": true
     }
 }
