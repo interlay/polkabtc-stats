@@ -3,6 +3,7 @@ import {RelayerColumns} from "../common/columnTypes";
 import {Filter} from "../common/util";
 import { getAllRelayers, getRecentDailyRelayers, getRelayersWithTrackRecord } from "./relayersDataService";
 import { RelayerData, RelayerCountTimeData, RelayerSlaRanking } from "./relayersModel";
+import {STATS_DEFAULT_PERPAGE as defaultPerPage} from "../common/constants";
 
 @Tags("stats")
 @Route("relayers")
@@ -40,7 +41,7 @@ export class RelayersController extends Controller {
     @Get("")
     public async getRelayers(
         @Query() page = 0,
-        @Query() perPage = 20,
+        @Query() perPage = defaultPerPage,
         @Query() sortBy: RelayerColumns = "block_number",
         @Query() sortAsc = false,
         @Query() slaSince: number
@@ -51,7 +52,7 @@ export class RelayersController extends Controller {
     @Post("")
     public async getFilteredRelayers(
         @Query() page = 0,
-        @Query() perPage = 20,
+        @Query() perPage = defaultPerPage,
         @Query() sortBy: RelayerColumns = "block_number",
         @Query() sortAsc = false,
         @Body() filters: Filter<RelayerColumns>[] = [],

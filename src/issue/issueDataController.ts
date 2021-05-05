@@ -10,6 +10,7 @@ import { Issue } from "./issueModels";
 import { SatoshisTimeData } from "../common/commonModels";
 import { BtcNetworkName, Filter } from "../common/util";
 import { IssueColumns } from "../common/columnTypes";
+import {STATS_DEFAULT_PERPAGE as defaultPerPage} from "../common/constants";
 
 @Tags("stats")
 @Route("issues")
@@ -60,7 +61,7 @@ export class IssuesController extends Controller {
     @Get("")
     public async getIssues(
         @Query() page = 0,
-        @Query() perPage = 20,
+        @Query() perPage = defaultPerPage,
         @Query() sortBy: IssueColumns = "block_number",
         @Query() sortAsc = false,
         @Query() network = "mainnet" as BtcNetworkName
@@ -71,7 +72,7 @@ export class IssuesController extends Controller {
     @Post("")
     public async getFilteredIssues(
         @Query() page = 0,
-        @Query() perPage = 20,
+        @Query() perPage = defaultPerPage,
         @Query() sortBy: IssueColumns = "block_number",
         @Query() sortAsc = false,
         @Body() filters: Filter<IssueColumns>[] = [],

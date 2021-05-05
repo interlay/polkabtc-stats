@@ -89,8 +89,8 @@ export async function getAllRelayers(
                 LEFT OUTER JOIN
                   (
                     SELECT relayer_id, sum(delta::BIGINT) as lifetime_sla_change
-                    FROM v_parachain_stakedrelayer_sla_update
-                    WHERE block_ts > $3 AND delta NOT LIKE '0x%'
+                    FROM v_parachain_stakedrelayer_sla_update_v2
+                    WHERE block_ts > $3
                     GROUP BY relayer_id
                   ) sla_change
                 USING (relayer_id)

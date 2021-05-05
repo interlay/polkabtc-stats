@@ -10,6 +10,7 @@ import { Redeem } from "./redeemModel";
 import { SatoshisTimeData } from "../common/commonModels";
 import { BtcNetworkName, Filter } from "../common/util";
 import { RedeemColumns } from "../common/columnTypes";
+import {STATS_DEFAULT_PERPAGE as defaultPerPage} from "../common/constants";
 
 @Tags("stats")
 @Route("redeems")
@@ -52,7 +53,7 @@ export class RedeemsController extends Controller {
     @Get("")
     public async getRedeems(
         @Query() page = 0,
-        @Query() perPage = 20,
+        @Query() perPage = defaultPerPage,
         @Query() sortBy: RedeemColumns = "block_number",
         @Query() sortAsc = false,
         @Query() network: BtcNetworkName = "mainnet"
@@ -68,7 +69,7 @@ export class RedeemsController extends Controller {
     @Post("")
     public async getFilteredRedeems(
         @Query() page = 0,
-        @Query() perPage = 20,
+        @Query() perPage = defaultPerPage,
         @Query() sortBy: RedeemColumns = "block_number",
         @Query() sortAsc = false,
         @Body() filters: Filter<RedeemColumns>[] = [],
