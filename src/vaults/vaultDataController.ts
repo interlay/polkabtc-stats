@@ -8,6 +8,7 @@ import {
     getVaultsWithTrackRecord,
 } from "./vaultDataService";
 import { VaultData, VaultCountTimeData, CollateralTimeData, VaultSlaRanking } from "./vaultModels";
+import {STATS_DEFAULT_PERPAGE as defaultPerPage} from "../common/constants";
 
 @Tags("stats")
 @Route("vaults")
@@ -56,7 +57,7 @@ export class VaultsController extends Controller {
     @Get("")
     public async getVaults(
         @Query() page = 0,
-        @Query() perPage = 20,
+        @Query() perPage = defaultPerPage,
         @Query() sortBy: VaultColumns = "block_number",
         @Query() sortAsc = false,
         @Query() slaSince: number
@@ -67,7 +68,7 @@ export class VaultsController extends Controller {
     @Post("")
     public async getFilteredVaults(
         @Query() page = 0,
-        @Query() perPage = 20,
+        @Query() perPage = defaultPerPage,
         @Query() sortBy: VaultColumns = "block_number",
         @Query() sortAsc = false,
         @Body() filters: Filter<VaultColumns>[] = [],
