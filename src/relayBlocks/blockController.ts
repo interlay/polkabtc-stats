@@ -2,6 +2,7 @@ import { Controller, Get, Query, Route, Tags } from "tsoa";
 import { getPagedBlocks, totalRelayedBlocks } from "./blockService";
 import { BtcBlock } from "./blockModel";
 import { BlockColumns } from "../common/columnTypes";
+import {STATS_DEFAULT_PERPAGE as defaultPerPage} from "../common/constants";
 
 @Tags("stats")
 @Route("blocks")
@@ -12,7 +13,7 @@ export class CumulativeBlocksController extends Controller {
     @Get("")
     public async getBlocks(
         @Query() page = 0,
-        @Query() perPage = 20,
+        @Query() perPage = defaultPerPage,
         @Query() sortBy: BlockColumns = "height",
         @Query() sortAsc = false
     ): Promise<BtcBlock[]> {

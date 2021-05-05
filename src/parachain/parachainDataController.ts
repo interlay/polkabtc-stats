@@ -6,6 +6,7 @@ import {
     getTotalStatusUpdates,
 } from "./parachainDataService";
 import { ParachainStatusUpdate } from "./parachainModels";
+import {STATS_DEFAULT_PERPAGE as defaultPerPage} from "../common/constants";
 
 @Tags("stats")
 @Route("statusUpdates")
@@ -16,7 +17,7 @@ export class ParachainController extends Controller {
     @Get("")
     public async getParachainStatusUpdates(
         @Query() page = 0,
-        @Query() perPage = 20,
+        @Query() perPage = defaultPerPage,
         @Query() sortBy: StatusUpdateColumns = "block_number",
         @Query() sortAsc = false
     ): Promise<ParachainStatusUpdate[]> {
@@ -26,7 +27,7 @@ export class ParachainController extends Controller {
     @Post("")
     public async getFilteredParachainStatusUpdates(
         @Query() page = 0,
-        @Query() perPage = 20,
+        @Query() perPage = defaultPerPage,
         @Query() sortBy: StatusUpdateColumns = "block_number",
         @Query() sortAsc = false,
         @Body() filters: Filter<StatusUpdateColumns>[] = []
