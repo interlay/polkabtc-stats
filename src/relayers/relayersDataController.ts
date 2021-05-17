@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Post, Query, Route, Tags } from "tsoa";
-import {RelayerColumns} from "../common/columnTypes";
+import {RelayerChallengeColumns} from "../common/columnTypes";
 import {Filter} from "../common/util";
 import { getAllRelayers, getRecentDailyRelayers, getRelayersWithTrackRecord } from "./relayersDataService";
 import { RelayerData, RelayerCountTimeData, RelayerSlaRanking } from "./relayersModel";
@@ -42,7 +42,7 @@ export class RelayersController extends Controller {
     public async getRelayers(
         @Query() page = 0,
         @Query() perPage = defaultPerPage,
-        @Query() sortBy: RelayerColumns = "block_number",
+        @Query() sortBy: RelayerChallengeColumns = "block_number",
         @Query() sortAsc = false,
         @Query() slaSince: number
     ): Promise<RelayerData[]> {
@@ -53,9 +53,9 @@ export class RelayersController extends Controller {
     public async getFilteredRelayers(
         @Query() page = 0,
         @Query() perPage = defaultPerPage,
-        @Query() sortBy: RelayerColumns = "block_number",
+        @Query() sortBy: RelayerChallengeColumns = "block_number",
         @Query() sortAsc = false,
-        @Body() filters: Filter<RelayerColumns>[] = [],
+        @Body() filters: Filter<RelayerChallengeColumns>[] = [],
         @Query() slaSince: number
     ): Promise<RelayerData[]> {
         return getAllRelayers(page, perPage, sortBy, sortAsc, filters, slaSince);

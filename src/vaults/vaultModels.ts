@@ -1,5 +1,6 @@
 import { DistributionStats } from "../common/commonModels";
 import BN from "bn.js";
+import Big from "big.js";
 
 export interface CollateralTimeData {
     date: number;
@@ -9,6 +10,22 @@ export interface CollateralTimeData {
 export interface VaultCountTimeData {
     date: number;
     count: number;
+}
+
+export interface Vault {
+    id: string;
+    collateral: Big;
+    lockedBTC: number;
+    pendingBTC: number;
+    collateralization: number;
+    pendingCollateralization: number;
+    capacity: Big;
+    registrationBlock: Big;
+    status: {
+        committedTheft: boolean;
+        liquidated: boolean;
+        banned?: number;
+    }
 }
 
 export interface VaultData {

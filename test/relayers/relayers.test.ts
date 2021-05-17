@@ -1,5 +1,5 @@
 import {assert} from "chai";
-import {RelayerColumns} from "../../src/common/columnTypes";
+import {RelayerChallengeColumns} from "../../src/common/columnTypes";
 import {
     getAllRelayers,
     getRecentDailyRelayers, getRelayersWithTrackRecord
@@ -54,7 +54,7 @@ describe("Relayers", () => {
     });
 
     it("should return the first 5 relayers", async () => {
-        const relayers = await getAllRelayers(0, 5, "block_number" as RelayerColumns, false, [], 1617451200000); //sla limit to avoid unparsed hex SLAs
+        const relayers = await getAllRelayers(0, 5, "block_number" as RelayerChallengeColumns, false, [], 1617451200000); //sla limit to avoid unparsed hex SLAs
         const expected = [
             {
                 id: '5C4oqR3Y1bU7ZRLpsnF2FDLQHY4KCtZC9z64MFsWAd3mgnN4',

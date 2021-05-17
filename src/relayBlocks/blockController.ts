@@ -1,8 +1,9 @@
 import { Controller, Get, Query, Route, Tags } from "tsoa";
-import { getPagedBlocks, totalRelayedBlocks } from "./blockService";
+import { getPagedBlocks, highestBlock, totalRelayedBlocks } from "./blockService";
 import { BtcBlock } from "./blockModel";
 import { BlockColumns } from "../common/columnTypes";
 import {STATS_DEFAULT_PERPAGE as defaultPerPage} from "../common/constants";
+import Big from "big.js";
 
 @Tags("stats")
 @Route("blocks")
@@ -24,7 +25,15 @@ export class CumulativeBlocksController extends Controller {
      * Retrieves the total amount of blocks submitted to BTCRelay.
      **/
     @Get("count")
-    public async getTotalRelayedBlocksCount(): Promise<string> {
+    public async getTotalRelayedBlocksCount(): Promise<Big> {
         return totalRelayedBlocks();
+    }
+
+    /**
+     * Retrieves the latest btc block submitted to BTCRelay.
+     **/
+    @Get("highestBlock")
+    public async getHighestBTCBlock(): Promise<Big> {
+        return highestBlock();
     }
 }

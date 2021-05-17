@@ -3,6 +3,7 @@ import {
     CollateralTimeData,
     VaultCountTimeData,
     VaultSlaRanking,
+    Vault,
 } from "./vaultModels";
 import {
     Filter,
@@ -16,7 +17,8 @@ import Big from "big.js";
 import { planckToDOT } from "@interlay/polkabtc";
 import logFn from "../common/logger";
 import { VaultStats } from "./vaultModels";
-import {VaultColumns} from "../common/columnTypes";
+import {VaultChallengeColumns, VaultColumns} from "../common/columnTypes";
+import {parachainConstants} from "../parachainConstants/constantsService";
 import BN from "bn.js";
 import format from "pg-format";
 
@@ -244,6 +246,128 @@ export async function getAllVaults(
     sortBy: VaultColumns,
     sortAsc: boolean,
     filters: Filter<VaultColumns>[],
+): Promise<Vault[]> {
+    try {
+        const res = await pool.query(
+            `
+            SELECT
+                vaults.vault_id,
+                vaults.collateral,
+                reg.block_ts AS registration_block,
+                COALESCE ((
+                    SELECT
+                        TRUE
+                    FROM v_parachain_vault_theft
+                    WHERE vault_id = vaults.vault_id
+                ), FALSE) AS committed_theft,
+                COALESCE ((
+                    SELECT
+                        TRUE
+                    FROM v_parachain_vault_liquidation
+                    WHERE vault_id = vaults.vault_id
+                ), FALSE) as liquidated,
+                COALESCE ((
+                    SELECT
+                        SUM(ex.amount_btc::BIGINT - req.fee_polkabtc::BIGINT)
+                    FROM v_parachain_data_execute_issue ex
+                        JOIN v_parachain_data_request_issue req
+                        USING (issue_id)
+                    WHERE ex.vault_id = vaults.vault_id
+                ), 0) AS executed_issues,
+                COALESCE ((
+                    SELECT
+                        SUM(COALESCE(fee::BIGINT, 0))
+                    FROM v_parachain_refund_execute ex
+                        JOIN v_parachain_refund_request
+                        USING (refund_id)
+                    WHERE ex.vault = vaults.vault_id
+                ), 0) AS received_refunds,
+                COALESCE ((
+                    SELECT
+                        SUM(amount_polka_btc::BIGINT - fee_polkabtc::BIGINT)
+                    FROM v_parachain_redeem_execute ex
+                    WHERE ex.vault_id = vaults.vault_id
+                ), 0) AS executed_redeems,
+                COALESCE ((
+                    SELECT
+                        SUM(req.amount_polka_btc::BIGINT)
+                    FROM v_parachain_redeem_cancel c
+                        JOIN v_parachain_redeem_request req
+                        USING (redeem_id)
+                    WHERE c.reimbursed = 'true'
+                        AND c.vault_id = vaults.vault_id
+                ), 0) AS reimbursed_redeems,
+                COALESCE ((
+                    SELECT
+                        SUM(amount_btc::BIGINT)
+                    FROM v_parachain_data_request_issue r
+                        LEFT OUTER JOIN v_parachain_data_cancel_issue c
+                        USING (issue_id)
+                    WHERE c.issue_id IS NULL
+                        AND r.vault_id = vaults.vault_id
+                ), 0) AS requested_issues
+            FROM (
+                SELECT DISTINCT ON (vault_id)
+                    vault_id,
+                    collateral
+                FROM (
+                    SELECT
+                        vault_id,
+                        collateral,
+                        block_ts
+                    FROM v_parachain_vault_registration
+                    UNION
+                    SELECT
+                        vault_id,
+                        total_collateral AS collateral,
+                        block_ts
+                    FROM v_parachain_vault_collateral
+                ) col
+                ORDER BY vault_id, block_ts DESC
+            ) vaults
+            JOIN v_parachain_vault_registration reg USING (vault_id)
+            ${filtersToWhere<VaultColumns>(filters)}
+            ORDER BY ${format.ident(sortBy)} ${
+                sortAsc ? "ASC" : "DESC"
+            }
+            LIMIT $1 OFFSET $2
+            `, [perPage, page * perPage]);
+        const exchangeRate = hexStringFixedPointToBig((await pool.query(`select exchange_rate from v_parachain_oracle_set_exchange_rate order by block_ts desc limit 1`)).rows[0].exchange_rate);
+        const secureCollateralThreshold = (await parachainConstants).secureCollateralThreshold;
+        return res.rows.map((row) => {
+            const collateral = new Big(row.collateral);
+            const convertedCollateral = collateral.div(exchangeRate);
+            const lockedBTC = Number(row.executed_issues) + Number(row.received_refunds) - Number(row.executed_redeems) - Number(row.reimbursed_redeems);
+            const pendingBTC = Number(row.requested_issues) - Number(row.executed_issues);
+            const capacity = convertedCollateral.div(secureCollateralThreshold).sub(lockedBTC);
+            return {
+                id: row.vault_id,
+                collateral,
+                lockedBTC,
+                pendingBTC,
+                collateralization: lockedBTC === 0 ? NaN : convertedCollateral.div(lockedBTC).toNumber(),
+                pendingCollateralization: (lockedBTC + pendingBTC) === 0 ? NaN : convertedCollateral.div(lockedBTC + pendingBTC).toNumber(),
+                capacity,
+                registrationBlock: row.registration_block,
+                status: {
+                    committedTheft: row.committed_theft,
+                    liquidated: row.liquidated,
+                    banned: undefined,
+                }
+            }
+        });
+    } catch (e) {
+        logger.error(e);
+        throw e;
+    }
+}
+
+export async function getChallengeVaults(
+    page: number,
+    perPage: number,
+    sortBy: VaultChallengeColumns,
+    sortAsc: boolean,
+    filters: Filter<VaultChallengeColumns>[],
     slaSince: number
 ): Promise<VaultData[]> {
     try {
@@ -266,7 +390,7 @@ export async function getAllVaults(
             SELECT vault_id, total_collateral, block_number
             FROM v_parachain_vault_collateral
         ) reg
-        ${filtersToWhere<VaultColumns>(filters)}
+        ${filtersToWhere<VaultChallengeColumns>(filters)}
         ORDER BY reg.vault_id DESC,
         ${format.ident(sortBy)} ${
             sortAsc ? "ASC" : "DESC"

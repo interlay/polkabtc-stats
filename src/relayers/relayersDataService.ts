@@ -7,7 +7,7 @@ import { Filter, filtersToWhere, getDurationAboveMinSla } from "../common/util";
 import pool from "../common/pool";
 import { planckToDOT } from "@interlay/polkabtc";
 import logFn from '../common/logger'
-import {RelayerColumns} from "../common/columnTypes";
+import {RelayerChallengeColumns} from "../common/columnTypes";
 import format from "pg-format";
 
 export const logger = logFn({ name: 'relayersDataService' });
@@ -66,9 +66,9 @@ export async function getRelayersWithTrackRecord(
 export async function getAllRelayers(
     page: number,
     perPage: number,
-    sortBy: RelayerColumns,
+    sortBy: RelayerChallengeColumns,
     sortAsc: boolean,
-    filters: Filter<RelayerColumns>[],
+    filters: Filter<RelayerChallengeColumns>[],
     slaSince: number
 ): Promise<RelayerData[]> {
     try {
@@ -113,7 +113,7 @@ export async function getAllRelayers(
                 LEFT OUTER JOIN
                     (SELECT max(block_number) as block_number FROM parachain_events) latestblock
                 ON TRUE
-                ${filtersToWhere<RelayerColumns>(filters)}
+                ${filtersToWhere<RelayerChallengeColumns>(filters)}
                 ORDER BY reg.relayer_id,
                 ${format.ident(sortBy)} ${
                     sortAsc ? "ASC" : "DESC"

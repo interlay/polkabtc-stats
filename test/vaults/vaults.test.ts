@@ -1,7 +1,7 @@
 import {assert} from "chai";
-import {VaultColumns} from "../../src/common/columnTypes";
+import {VaultChallengeColumns} from "../../src/common/columnTypes";
 import {
-    getAllVaults,
+    getChallengeVaults,
     getRecentDailyCollateral,
     getRecentDailyVaults, getVaultsWithTrackRecord
 } from "../../src/vaults/vaultDataService";
@@ -54,7 +54,7 @@ describe("Vaults", () => {
     });
 
     it("should return the first 5 vaults", async () => {
-        const vaults = await getAllVaults(0, 5, "block_number" as VaultColumns, false, [], 0);
+        const vaults = await getChallengeVaults(0, 5, "block_number" as VaultChallengeColumns, false, [], 0);
         const expected = [
             {
                 cancel_redeem_count: "7",

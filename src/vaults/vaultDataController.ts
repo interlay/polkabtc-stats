@@ -1,10 +1,10 @@
 import { Body, Controller, Get, Post, Query, Route, Tags } from "tsoa";
-import {VaultColumns} from "../common/columnTypes";
+import {VaultChallengeColumns} from "../common/columnTypes";
 import {Filter} from "../common/util";
 import {
     getRecentDailyVaults,
     getRecentDailyCollateral,
-    getAllVaults,
+    getChallengeVaults,
     getVaultsWithTrackRecord,
 } from "./vaultDataService";
 import { VaultData, VaultCountTimeData, CollateralTimeData, VaultSlaRanking } from "./vaultModels";
@@ -58,22 +58,22 @@ export class VaultsController extends Controller {
     public async getVaults(
         @Query() page = 0,
         @Query() perPage = defaultPerPage,
-        @Query() sortBy: VaultColumns = "block_number",
+        @Query() sortBy: VaultChallengeColumns = "block_number",
         @Query() sortAsc = false,
         @Query() slaSince: number
     ): Promise<VaultData[]> {
-        return getAllVaults(page, perPage, sortBy, sortAsc, [], slaSince);
+        return getChallengeVaults(page, perPage, sortBy, sortAsc, [], slaSince);
     }
 
     @Post("")
     public async getFilteredVaults(
         @Query() page = 0,
         @Query() perPage = defaultPerPage,
-        @Query() sortBy: VaultColumns = "block_number",
+        @Query() sortBy: VaultChallengeColumns = "block_number",
         @Query() sortAsc = false,
-        @Body() filters: Filter<VaultColumns>[] = [],
+        @Body() filters: Filter<VaultChallengeColumns>[] = [],
         @Query() slaSince: number
     ): Promise<VaultData[]> {
-        return getAllVaults(page, perPage, sortBy, sortAsc, filters, slaSince);
+        return getChallengeVaults(page, perPage, sortBy, sortAsc, filters, slaSince);
     }
 }
