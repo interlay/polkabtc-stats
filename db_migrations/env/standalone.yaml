@@ -1,0 +1,2 @@
+dbUrl: "jdbc:postgresql://interlay-pgsql.postgresql/polkabtc_standalone?sslmode=require"
+dbCredentials: "pgsql_flyway_creds"

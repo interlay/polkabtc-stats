@@ -9,9 +9,6 @@ import {
     getPagedIssues,
 } from "../../src/issue/issueDataService";
 import { getUTCMidnight } from "../util";
-import { getTypeORMConnection } from "../../src/common/ormConnection";
-
-getTypeORMConnection(); //side-effect: creates the TypeORM connection
 
 describe("Issue", () => {
     it("should return the count of successful issues", async () => {
