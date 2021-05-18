@@ -1,9 +1,9 @@
 import {
-    VaultData,
+    VaultChallengeData,
     CollateralTimeData,
     VaultCountTimeData,
     VaultSlaRanking,
-    Vault,
+    VaultData,
 } from "./vaultModels";
 import {
     Filter,
@@ -14,7 +14,7 @@ import {
 } from "../common/util";
 import pool from "../common/pool";
 import Big from "big.js";
-import { planckToDOT } from "@interlay/polkabtc";
+import { planckToDOT, satToBTC } from "@interlay/polkabtc";
 import logFn from "../common/logger";
 import { VaultStats } from "./vaultModels";
 import {VaultChallengeColumns, VaultColumns} from "../common/columnTypes";
@@ -246,14 +246,14 @@ export async function getAllVaults(
     sortBy: VaultColumns,
     sortAsc: boolean,
     filters: Filter<VaultColumns>[],
-): Promise<Vault[]> {
+): Promise<VaultData[]> {
     try {
         const res = await pool.query(
             `
             SELECT
                 vaults.vault_id,
                 vaults.collateral,
-                reg.block_ts AS registration_block,
+                reg.block_ts AS registration_ts,
                 COALESCE ((
                     SELECT
                         TRUE
@@ -332,13 +332,19 @@ export async function getAllVaults(
             }
             LIMIT $1 OFFSET $2
             `, [perPage, page * perPage]);
-        const exchangeRate = hexStringFixedPointToBig((await pool.query(`select exchange_rate from v_parachain_oracle_set_exchange_rate order by block_ts desc limit 1`)).rows[0].exchange_rate);
+        const exchangeRateRes = await pool.query(`select exchange_rate from v_parachain_oracle_set_exchange_rate order by block_ts desc limit 1`);
+        if (exchangeRateRes.rows.length === 0) { // no oracle updates ever
+            throw new Error("No exchange rate data.");
+        }
+        const exchangeRate = hexStringFixedPointToBig(exchangeRateRes.rows[0].exchange_rate);
         const secureCollateralThreshold = (await parachainConstants).secureCollateralThreshold;
         return res.rows.map((row) => {
-            const collateral = new Big(row.collateral);
+            const collateral = new Big(planckToDOT(row.collateral));
             const convertedCollateral = collateral.div(exchangeRate);
-            const lockedBTC = Number(row.executed_issues) + Number(row.received_refunds) - Number(row.executed_redeems) - Number(row.reimbursed_redeems);
-            const pendingBTC = Number(row.requested_issues) - Number(row.executed_issues);
+            const lockedSat = Number(row.executed_issues) + Number(row.received_refunds) - Number(row.executed_redeems) - Number(row.reimbursed_redeems);
+            const lockedBTC = Number(satToBTC(lockedSat.toString()));
+            const pendingSat = Number(row.requested_issues) - Number(row.executed_issues);
+            const pendingBTC = Number(satToBTC(pendingSat.toString()));
             const capacity = convertedCollateral.div(secureCollateralThreshold).sub(lockedBTC);
             return {
                 id: row.vault_id,
@@ -348,7 +354,7 @@ export async function getAllVaults(
                 collateralization: lockedBTC === 0 ? NaN : convertedCollateral.div(lockedBTC).toNumber(),
                 pendingCollateralization: (lockedBTC + pendingBTC) === 0 ? NaN : convertedCollateral.div(lockedBTC + pendingBTC).toNumber(),
                 capacity,
-                registrationBlock: row.registration_block,
+                registeredAt: row.registration_ts,
                 status: {
                     committedTheft: row.committed_theft,
                     liquidated: row.liquidated,
@@ -369,7 +375,7 @@ export async function getChallengeVaults(
     sortAsc: boolean,
     filters: Filter<VaultChallengeColumns>[],
     slaSince: number
-): Promise<VaultData[]> {
+): Promise<VaultChallengeData[]> {
     try {
         const res = await pool.query(
             `

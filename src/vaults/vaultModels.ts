@@ -12,7 +12,7 @@ export interface VaultCountTimeData {
     count: number;
 }
 
-export interface Vault {
+export interface VaultData {
     id: string;
     collateral: Big;
     lockedBTC: number;
@@ -20,7 +20,7 @@ export interface Vault {
     collateralization: number;
     pendingCollateralization: number;
     capacity: Big;
-    registrationBlock: Big;
+    registeredAt: Big;
     status: {
         committedTheft: boolean;
         liquidated: boolean;
@@ -28,7 +28,7 @@ export interface Vault {
     }
 }
 
-export interface VaultData {
+export interface VaultChallengeData {
     id: string;
     collateral: string;
     request_issue_count: number;

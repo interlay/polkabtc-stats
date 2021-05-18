@@ -5,7 +5,7 @@ import {
     getRecentDailyCollateral,
     getRecentDailyVaults, getVaultsWithTrackRecord
 } from "../../src/vaults/vaultDataService";
-import {CollateralTimeData, VaultCountTimeData, VaultData} from "../../src/vaults/vaultModels";
+import {CollateralTimeData, VaultCountTimeData, VaultChallengeData} from "../../src/vaults/vaultModels";
 import {getMidnight, getUTCMidnight} from "../util";
 import BN from "bn.js";
 
@@ -107,6 +107,6 @@ describe("Vaults", () => {
                 lifetime_sla: '2798731246889024',
             },
         ];
-        assert.deepEqual(vaults, expected as unknown as VaultData[]);
+        assert.deepEqual(vaults, expected as unknown as VaultChallengeData[]);
     });
 });
