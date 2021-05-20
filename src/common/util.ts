@@ -55,8 +55,6 @@ export function btcAddressToString(
     addressObject: any,
     network: BtcNetworkName
 ): string {
-    logger.info(`BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB Parsing BTC address: ${JSON.stringify(addressObject)} on network: ${network}`)
-
     const hash = Buffer.from(
         Object.values<string>(addressObject)[0].substring(2),
         "hex"

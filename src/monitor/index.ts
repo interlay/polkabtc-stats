@@ -11,14 +11,16 @@ import { PolkaBTCAPI } from "@interlay/polkabtc";
 import pool from "../common/pool";
 import { getPolkaBtc } from "../common/polkaBtc";
 import logFn from "../common/logger";
-import { btcAddressToString, hexStringFixedPointToBig } from "../common/util";
+import { btcAddressToString, BtcNetworkName, hexStringFixedPointToBig } from "../common/util";
+import {BTC_NETWORK} from "../common/constants";
 
 export const logger = logFn({ name: "monitor" });
 
 function decodeField(fieldType: string, fieldValue: string) {
+    const network = BTC_NETWORK.startsWith("http") ? "regtest" : BTC_NETWORK;
     switch (fieldType) {
         case "BtcAddress":
-            return btcAddressToString(fieldValue, "regtest"); // TODO fix network constant
+            return btcAddressToString(fieldValue, network as BtcNetworkName);
         case "FixedPoint":
         case "UnsignedFixedPoint":
         case "SignedFixedPoint":
@@ -38,8 +40,6 @@ function generateEvents(
         if (event.section === "system") {
             continue;
         }
-
-        logger.info(`AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA Logging event with section: ${event.section} and method: ${event.method} and data: ${event.data.toString()} and json data: ${event.data.toJSON()} (and json data FROM string: ${JSON.parse(event.data.toString())} (and stringified JSON from string: ${JSON.stringify(JSON.parse(event.data.toString()))}))`);
 
         let eventData = JSON.parse(event.data.toString()) as any[];
         // decode each event field
