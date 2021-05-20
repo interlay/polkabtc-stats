@@ -17,7 +17,6 @@ import { planckToDOT } from "@interlay/polkabtc";
 import logFn from "../common/logger";
 import { VaultStats } from "./vaultModels";
 import {VaultColumns} from "../common/columnTypes";
-import BN from "bn.js";
 import format from "pg-format";
 
 export const logger = logFn({ name: "vaultDataService" });
@@ -231,7 +230,7 @@ export async function getRecentDailyCollateral(
                         ) as un
                     WHERE block_ts < '${ts}'`
             )
-        ).map((row) => ({ date: row.date, amount: new BN(row.value) }));
+        ).map((row) => ({ date: row.date, amount: new Big(row.value) }));
     } catch (e) {
         logger.error(e);
         throw e;

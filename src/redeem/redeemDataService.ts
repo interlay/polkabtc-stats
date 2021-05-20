@@ -4,8 +4,6 @@ import { SatoshisTimeData } from "../common/commonModels";
 import Big from "big.js";
 import pool from "../common/pool";
 import {
-    btcAddressToString,
-    BtcNetworkName,
     Filter,
     filtersToWhere,
 } from "../common/util";
@@ -138,7 +136,6 @@ export async function getPagedRedeems(
     sortBy: RedeemColumns,
     sortAsc: boolean,
     filters: Filter<RedeemColumns>[],
-    network: BtcNetworkName
 ): Promise<Redeem[]> {
     try {
         const res = await pool.query(
@@ -167,10 +164,7 @@ export async function getPagedRedeems(
         );
         return Promise.all(
             res.rows.map(async (row) => {
-                const userBtcAddress = btcAddressToString(
-                    row.btc_address,
-                    network
-                );
+                const userBtcAddress = row.btc_address;
                 const {
                     txid,
                     confirmations,
@@ -188,7 +182,7 @@ export async function getPagedRedeems(
                     feePolkabtc: satToBTC(row.fee_polkabtc),
                     dotPremium: planckToDOT(row.dot_premium),
                     creation: Number(row.block_number),
-                    timestamp: row.block_ts.getTime().toString(),
+                    timestamp: row.block_ts.getTime(),
                     btcAddress: userBtcAddress,
                     vaultDotAddress: row.vault_id,
                     btcTxId: txid,

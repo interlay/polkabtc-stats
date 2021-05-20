@@ -18,7 +18,7 @@ export const logger = logFn({ name: "monitor" });
 function decodeField(fieldType: string, fieldValue: string) {
     switch (fieldType) {
         case "BtcAddress":
-            return btcAddressToString(fieldValue, "mainnet"); // TODO fix network constant
+            return btcAddressToString(fieldValue, "regtest"); // TODO fix network constant
         case "FixedPoint":
         case "UnsignedFixedPoint":
         case "SignedFixedPoint":
@@ -39,8 +39,9 @@ function generateEvents(
             continue;
         }
 
-        // decode SLA events
-        let eventData = event.data.toJSON() as any[];
+        logger.info(`AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA Logging event with section: ${event.section} and method: ${event.method} and data: ${event.data.toString()} and json data: ${event.data.toJSON()} (and json data FROM string: ${JSON.parse(event.data.toString())} (and stringified JSON from string: ${JSON.stringify(JSON.parse(event.data.toString()))}))`);
+
+        let eventData = JSON.parse(event.data.toString()) as any[];
         // decode each event field
         for (let idx = 0; idx < eventData.length; idx++) {
             eventData[idx] = decodeField(
@@ -76,15 +77,11 @@ async function insertBlockData(polkaBTC: PolkaBTCAPI, blockNr: BlockNumber) {
     return Promise.all(
         generateEvents(events.toArray(), block, timestamp).map((ev) =>
             dbclient.query(
-                "INSERT INTO parachain_events (data, block_number, block_ts, section, method, block_hash, event_hash) VALUES ($1, $2, $3, $4, $5)",
+                "INSERT INTO parachain_events (data, block_number, block_ts) VALUES ($1, $2, $3)",
                 [
-                    JSON.stringify(ev.data),
+                    JSON.stringify(ev),
                     ev.blockNumber,
                     ev.timestamp,
-                    ev.section,
-                    ev.method,
-                    ev.blockHash,
-                    ev.eventHash,
                 ]
             )
         )

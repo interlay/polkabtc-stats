@@ -1,0 +1,23 @@
+DROP VIEW public.v_parachain_data;
+
+CREATE TABLE public.v_parachain_data (
+    id serial PRIMARY KEY,
+    block_number integer NOT NULL,
+    block_ts timestamp without time zone NOT NULL
+    event_data jsonb NOT NULL,
+    section character varying NOT NULL,
+    method character varying NOT NULL,
+    block_hash character varying,
+    event_hash character varying,
+);
+
+INSERT INTO public.v_parachain_data VALUES (
+    SELECT parachain_events.block_number,
+        parachain_events.block_ts,
+        (parachain_events.data ->> 'section'::text) AS section,
+        (parachain_events.data ->> 'method'::text) AS method,
+        (parachain_events.data -> 'data'::text) AS event_data,
+        NULL as block_hash,
+        NULL as event_data
+    FROM public.parachain_events;
+);

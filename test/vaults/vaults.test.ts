@@ -7,7 +7,7 @@ import {
 } from "../../src/vaults/vaultDataService";
 import {CollateralTimeData, VaultCountTimeData, VaultData} from "../../src/vaults/vaultModels";
 import {getMidnight, getUTCMidnight} from "../util";
-import BN from "bn.js";
+import Big from "big.js";
 
 describe("Vaults", () => {
     it("should return the vault counts for the last three days", async () => {
@@ -20,7 +20,7 @@ describe("Vaults", () => {
 
     it("should return the collateral locked for the last three days", async () => {
         const recentDailyCollateral = await getRecentDailyCollateral(3);
-        const amount = new BN(6285912090771455);
+        const amount = new Big(6285912090771455);
         const nextMidnight = getMidnight(new Date()).getTime() + 86400 * 1000;
         const expected = Array.from({length: 3}, (_, idx) => ({date: nextMidnight - (idx * 86400 * 1000), amount} as CollateralTimeData)).reverse();
         return assert.deepEqual(recentDailyCollateral, expected);

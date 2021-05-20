@@ -1,7 +1,6 @@
 import { assert } from "chai";
 import { RedeemColumns } from "../../src/common/columnTypes";
 import { SatoshisTimeData } from "../../src/common/commonModels";
-import { BtcNetworkName } from "../../src/common/util";
 import {
     getTotalSuccessfulRedeems,
     getTotalRedeems,
@@ -52,7 +51,6 @@ describe("Redeem", () => {
             "block_number" as RedeemColumns,
             false,
             [],
-            "testnet" as BtcNetworkName
         );
         const expected = [
             {
@@ -63,7 +61,7 @@ describe("Redeem", () => {
                 feePolkabtc: "0.00227533",
                 dotPremium: "0",
                 creation: 674212,
-                timestamp: "1618760280002",
+                timestamp: 1618760280002,
                 btcAddress: "2MxeZfFqfLu3vt4u8aTiZb7xKLmDpcikdyF",
                 vaultDotAddress:
                     "5DXr7zcyLjcZmapipiDRKKe3X9an6s3JRuJCM8QNXEqepRMS",
@@ -83,7 +81,7 @@ describe("Redeem", () => {
                 feePolkabtc: "0.000008",
                 dotPremium: "0.1187632",
                 creation: 674203,
-                timestamp: "1618760226000",
+                timestamp: 1618760226000,
                 btcAddress: "2MxeZfFqfLu3vt4u8aTiZb7xKLmDpcikdyF",
                 vaultDotAddress:
                     "5EqncXtDo93yRgHQTFxvfkQFFrt85UTmh8WjLMaGsvyZV174",
@@ -103,7 +101,7 @@ describe("Redeem", () => {
                 feePolkabtc: "0.00105",
                 dotPremium: "15.58767",
                 creation: 674192,
-                timestamp: "1618760160000",
+                timestamp: 1618760160000,
                 btcAddress: "2MxeZfFqfLu3vt4u8aTiZb7xKLmDpcikdyF",
                 vaultDotAddress:
                     "5EqncXtDo93yRgHQTFxvfkQFFrt85UTmh8WjLMaGsvyZV174",

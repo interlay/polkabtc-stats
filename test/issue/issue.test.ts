@@ -1,7 +1,6 @@
 import { assert } from "chai";
 import { IssueColumns } from "../../src/common/columnTypes";
 import { SatoshisTimeData } from "../../src/common/commonModels";
-import { BtcNetworkName } from "../../src/common/util";
 import {
     getTotalSuccessfulIssues,
     getTotalIssues,
@@ -45,7 +44,6 @@ describe("Issue", () => {
             "block_number" as IssueColumns,
             false,
             [],
-            "testnet" as BtcNetworkName
         );
         const expected = [
             {
@@ -58,7 +56,7 @@ describe("Issue", () => {
                 vaultWalletPubkey:
                     "031d58786aa389b1bfa70fa9a3e2024c1c2c1f66aa4eb9449e14fce5b89ec10a4a",
                 creation: 667012,
-                timestamp: "1618717080000",
+                timestamp: 1618717080000,
                 vaultBTCAddress: "tb1qujm7glqv5q4qtngz0h5w85g3qe8r2al6rs4a3d",
                 vaultDOTAddress:
                     "5GMv2dMkizpti6vJqgKHWRh132hgzxg4Ba2BkSj5cSSWf2jh",
@@ -83,7 +81,7 @@ describe("Issue", () => {
                 vaultWalletPubkey:
                     "02c8a2399c920f231ee54c559893f897a5e82d854e793ec232825b84fb9cadd26c",
                 creation: 666967,
-                timestamp: "1618716810000",
+                timestamp: 1618716810000,
                 vaultBTCAddress: "tb1q04jp0xjgcc2xy75xc8va9829286day7tmgfl2p",
                 vaultDOTAddress:
                     "5CAxoMfhGu9W9ziSTiEVtyXy47mkHJBe9Zxw1JhwQPP7Sb9S",
@@ -108,7 +106,7 @@ describe("Issue", () => {
                 vaultWalletPubkey:
                     "031a07541fdaca331c2d29fa837f8bcb78a61af9db7d55a1cc3a57ca4fea289771",
                 creation: 641814,
-                timestamp: "1618563948002",
+                timestamp: 1618563948002,
                 vaultBTCAddress: "tb1qy6ak60wkhmkdz4vts3gd9y3lynwd0llxu0p4t2",
                 vaultDOTAddress:
                     "5DP1Wz2WSc9QdKndtDXNNwzbcBPQNhXLSTgKsMpRin4yt1Pi",
