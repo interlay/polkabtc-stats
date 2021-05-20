@@ -5,8 +5,6 @@ import { planckToDOT, satToBTC, stripHexPrefix } from "@interlay/polkabtc";
 import Big from "big.js";
 import pool from "../common/pool";
 import {
-    btcAddressToString,
-    BtcNetworkName,
     Filter,
     filtersToWhere,
 } from "../common/util";
@@ -159,7 +157,6 @@ export async function getPagedIssues(
     sortBy: IssueColumns,
     sortAsc: boolean,
     filters: Filter<IssueColumns>[],
-    network: BtcNetworkName
 ): Promise<Issue[]> {
     try {
         const res = await pool.query(
@@ -193,13 +190,8 @@ export async function getPagedIssues(
         );
         return Promise.all(
             res.rows.map(async (row) => {
-                const vaultBTCAddress = btcAddressToString(
-                    row.btc_address,
-                    network
-                );
-                const refundBtcAddress = row.refund_btc_address
-                    ? btcAddressToString(row.refund_btc_address, network)
-                    : "";
+                const vaultBTCAddress = row.btc_address;
+                const refundBtcAddress = row.refund_btc_address;
                 const {
                     txid,
                     confirmations,
@@ -217,7 +209,7 @@ export async function getPagedIssues(
                     griefingCollateral: planckToDOT(row.griefing_collateral),
                     vaultWalletPubkey: stripHexPrefix(row.vault_wallet_pubkey),
                     creation: Number(row.block_number),
-                    timestamp: row.block_ts.getTime().toString(),
+                    timestamp: row.block_ts.getTime(),
                     vaultBTCAddress,
                     vaultDOTAddress: row.vault_id,
                     btcTxId: txid,

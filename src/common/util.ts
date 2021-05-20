@@ -2,11 +2,14 @@ import pool from "./pool";
 import { TimeDataPoint } from "./commonModels";
 import { payments, networks } from "bitcoinjs-lib";
 import format from "pg-format";
+import logFn from "../common/logger";
 import Big from "big.js";
 import { Colmuns } from "./columnTypes";
 import { decodeFixedPointType } from "@interlay/polkabtc";
 import { SignedFixedPoint } from "@interlay/polkabtc/build/interfaces";
 import { TypeRegistry } from "@polkadot/types";
+
+export const logger = logFn({ name: "Utils" });
 
 export const msInDay = 86400 * 1000;
 export const MAX_CONF =
@@ -49,15 +52,14 @@ export function dateToMidnight(timestamp: number): number {
 }
 
 export function btcAddressToString(
-    addressObject: string,
+    addressObject: any,
     network: BtcNetworkName
 ): string {
-    const parsedAddress = JSON.parse(addressObject);
     const hash = Buffer.from(
-        Object.values<string>(parsedAddress)[0].substring(2),
+        Object.values<string>(addressObject)[0].substring(2),
         "hex"
     );
-    const paymentType = Object.keys(parsedAddress)[0];
+    const paymentType = Object.keys(addressObject)[0];
     const payment =
         paymentType === "P2WPKHv0"
             ? payments.p2wpkh

@@ -1,9 +1,9 @@
 import { DistributionStats } from "../common/commonModels";
-import BN from "bn.js";
+import Big from "big.js";
 
 export interface CollateralTimeData {
     date: number;
-    amount: BN;
+    amount: Big;
 }
 
 export interface VaultCountTimeData {

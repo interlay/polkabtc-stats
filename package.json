@@ -1,11 +1,12 @@
 {
     "name": "@interlay/polkabtc-stats",
-    "version": "0.2.2",
+    "version": "0.3.0",
     "license": "Apache-2.0",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
     "files": [
-        "dist/"
+        "dist/",
+        "sql/"
     ],
     "scripts": {
         "dev": "concurrently \"nodemon\" \"nodemon -x tsoa spec-and-routes\"",
@@ -35,8 +36,7 @@
         "pino": "^6.11.1",
         "reflect-metadata": "^0.1.13",
         "swagger-ui-express": "^4.1.6",
-        "tsoa": "^3.4.0",
-        "typeorm": "^0.2.30"
+        "tsoa": "^3.4.0"
     },
     "devDependencies": {
         "@openapitools/openapi-generator-cli": "^2.1.17",
