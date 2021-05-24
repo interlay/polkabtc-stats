@@ -38,7 +38,7 @@ app.get("/health", (_, res) => {
 app.get("/ready", async (_, res) => {
   try {
     const count = await totalRelayedBlocks()
-    if (parseInt(count) >= 0) {
+    if (count.gte(0)) {
       res.send('ok')
     }
   } catch (e) {

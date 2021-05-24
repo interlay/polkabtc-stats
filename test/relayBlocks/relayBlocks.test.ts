@@ -2,11 +2,12 @@ import {assert} from "chai";
 import {BlockColumns} from "../../src/common/columnTypes";
 import {BtcBlock} from "../../src/relayBlocks/blockModel";
 import {getPagedBlocks, totalRelayedBlocks} from "../../src/relayBlocks/blockService";
+import Big from "big.js";
 
 describe("Blocks", () => {
     it("should get the total count of submitted blocks", async () => {
         const total = await totalRelayedBlocks();
-        const expected = "5854";
+        const expected = new Big(5854);
         assert.equal(total, expected);
     });
 

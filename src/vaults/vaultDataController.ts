@@ -1,13 +1,14 @@
 import { Body, Controller, Get, Post, Query, Route, Tags } from "tsoa";
-import {VaultColumns} from "../common/columnTypes";
+import {VaultChallengeColumns, VaultColumns} from "../common/columnTypes";
 import {Filter} from "../common/util";
 import {
     getRecentDailyVaults,
     getRecentDailyCollateral,
-    getAllVaults,
+    getChallengeVaults,
     getVaultsWithTrackRecord,
+    getAllVaults,
 } from "./vaultDataService";
-import { VaultData, VaultCountTimeData, CollateralTimeData, VaultSlaRanking } from "./vaultModels";
+import { VaultChallengeData, VaultCountTimeData, CollateralTimeData, VaultSlaRanking, VaultData } from "./vaultModels";
 import {STATS_DEFAULT_PERPAGE as defaultPerPage} from "../common/constants";
 
 @Tags("stats")
@@ -50,9 +51,36 @@ export class VaultsController extends Controller {
     }
 
     /**
-     * Retrieves a paged list of vaults, along with the unbounded sum SLA scores
-     * after a given cutoff.
+     * Retrieves a paged list of vaults, with numbers of issue and redeem requests,
+     * and the unbounded sum SLA scores after a given cutoff.
      * @param slaSince A UNIX timestamp starting from which the SLA score will be summed.
+     **/
+    @Get("challengeVaultList")
+    public async getChallengeVaults(
+        @Query() page = 0,
+        @Query() perPage = defaultPerPage,
+        @Query() sortBy: VaultChallengeColumns = "block_number",
+        @Query() sortAsc = false,
+        @Query() slaSince: number
+    ): Promise<VaultChallengeData[]> {
+        return getChallengeVaults(page, perPage, sortBy, sortAsc, [], slaSince);
+    }
+
+    @Post("challengeVaultList")
+    public async getChallengeFilteredVaults(
+        @Query() page = 0,
+        @Query() perPage = defaultPerPage,
+        @Query() sortBy: VaultChallengeColumns = "block_number",
+        @Query() sortAsc = false,
+        @Body() filters: Filter<VaultChallengeColumns>[] = [],
+        @Query() slaSince: number
+    ): Promise<VaultChallengeData[]> {
+        return getChallengeVaults(page, perPage, sortBy, sortAsc, filters, slaSince);
+    }
+
+    /**
+     * Retrieves a paged list of vaults, with all dashboard stats (collateral, locked BTC,
+     * etc.)
      **/
     @Get("")
     public async getVaults(
@@ -60,9 +88,8 @@ export class VaultsController extends Controller {
         @Query() perPage = defaultPerPage,
         @Query() sortBy: VaultColumns = "block_number",
         @Query() sortAsc = false,
-        @Query() slaSince: number
     ): Promise<VaultData[]> {
-        return getAllVaults(page, perPage, sortBy, sortAsc, [], slaSince);
+        return getAllVaults(page, perPage, sortBy, sortAsc, []);
     }
 
     @Post("")
@@ -72,8 +99,7 @@ export class VaultsController extends Controller {
         @Query() sortBy: VaultColumns = "block_number",
         @Query() sortAsc = false,
         @Body() filters: Filter<VaultColumns>[] = [],
-        @Query() slaSince: number
     ): Promise<VaultData[]> {
-        return getAllVaults(page, perPage, sortBy, sortAsc, filters, slaSince);
+        return getAllVaults(page, perPage, sortBy, sortAsc, filters);
     }
 }

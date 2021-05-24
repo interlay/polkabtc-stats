@@ -1,11 +1,11 @@
 import {assert} from "chai";
-import {VaultColumns} from "../../src/common/columnTypes";
+import {VaultChallengeColumns} from "../../src/common/columnTypes";
 import {
-    getAllVaults,
+    getChallengeVaults,
     getRecentDailyCollateral,
     getRecentDailyVaults, getVaultsWithTrackRecord
 } from "../../src/vaults/vaultDataService";
-import {CollateralTimeData, VaultCountTimeData, VaultData} from "../../src/vaults/vaultModels";
+import {CollateralTimeData, VaultCountTimeData, VaultChallengeData} from "../../src/vaults/vaultModels";
 import {getMidnight, getUTCMidnight} from "../util";
 import BN from "bn.js";
 
@@ -54,7 +54,7 @@ describe("Vaults", () => {
     });
 
     it("should return the first 5 vaults", async () => {
-        const vaults = await getAllVaults(0, 5, "block_number" as VaultColumns, false, [], 0);
+        const vaults = await getChallengeVaults(0, 5, "block_number" as VaultChallengeColumns, false, [], 0);
         const expected = [
             {
                 cancel_redeem_count: "7",
@@ -107,6 +107,6 @@ describe("Vaults", () => {
                 lifetime_sla: '2798731246889024',
             },
         ];
-        assert.deepEqual(vaults, expected as unknown as VaultData[]);
+        assert.deepEqual(vaults, expected as unknown as VaultChallengeData[]);
     });
 });

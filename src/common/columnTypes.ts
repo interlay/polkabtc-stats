@@ -46,13 +46,24 @@ export type VaultColumns =
     | "vault_id"
     | "block_number"
     | "collateral"
+    | "locked_btc"
+    | "pending_btc"
+    | "committed_theft"
+    | "liquidated"
+    | "banned_until";
+
+export type VaultChallengeColumns =
+    | "vault_id"
+    | "block_number"
+    | "collateral"
     | "request_issue_count"
     | "execute_issue_count"
     | "request_redeem_count"
     | "execute_redeem_count"
     | "cancel_redeem_count"
     | "lifetime_sla_change";
-export type RelayerColumns =
+
+export type RelayerChallengeColumns =
     | "relayer_id"
     | "block_number"
     | "stake"
@@ -67,4 +78,5 @@ export type Colmuns =
     | StatusUpdateColumns
     | BlockColumns
     | VaultColumns
-    | RelayerColumns;
+    | VaultChallengeColumns
+    | RelayerChallengeColumns;

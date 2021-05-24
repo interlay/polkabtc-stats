@@ -3,6 +3,7 @@ import { BtcBlock } from "./blockModel";
 import pool from "../common/pool";
 import { stripHexPrefix } from "@interlay/polkabtc";
 import { BlockColumns } from "../common/columnTypes";
+import Big from "big.js";
 
 export async function getPagedBlocks(
     page: number,
@@ -26,8 +27,13 @@ export async function getPagedBlocks(
     }));
 }
 
-export async function totalRelayedBlocks(): Promise<string> {
+export async function totalRelayedBlocks(): Promise<Big> {
     const res = await pool.query(`SELECT count(*) from "v_parachain_data"
         WHERE "section"='btcRelay'::text AND "method"='StoreMainChainHeader'::text`);
-    return res.rows[0].count;
+    return new Big(res.rows[0].count);
+}
+
+export async function highestBlock(): Promise<Big> {
+    const res = await pool.query(`SELECT event_data->>0 AS latestblock FROM v_parachain_data WHERE "section"='btcRelay'::text AND "method"='StoreMainChainHeader'::text ORDER BY latestblock DESC LIMIT 1`);
+    return new Big(res.rows[0].latestblock);
 }

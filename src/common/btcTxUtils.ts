@@ -30,7 +30,7 @@ const getStableConfs: () => Promise<number> = (() => {
 })();
 
 async function getConfirmationsForTxid(polkabtc: PolkaBTCAPI, txid: string) {
-    const txStatus = await polkabtc.btcCore.getTransactionStatus(txid);
+    const txStatus = await polkabtc.electrsAPI.getTransactionStatus(txid);
     return txStatus.confirmations;
 }
 
@@ -44,6 +44,8 @@ export async function getTxDetailsForRequest(
     const stableConfs = await getStableConfs();
     const polkabtc = await getPolkaBtc();
 
+    const amountBtcBig = amountBtc ? new Big(amountBtc) : undefined;
+
     const savedDetails = (
         await getRepository(RequestTxCache, "pg_replica").find({
             id: requestId,
@@ -55,18 +57,18 @@ export async function getTxDetailsForRequest(
         logger.debug(`No BTC details yet for ${requestId} (type ${requestType})`);
         try {
             const txid = await (useOpReturn
-                ? polkabtc.btcCore.getTxIdByOpReturn(
+                ? polkabtc.electrsAPI.getTxIdByOpReturn(
                     requestId.substring(2),
                     recipient,
-                    amountBtc
+                    amountBtcBig
                 )
-                : polkabtc.btcCore.getTxIdByRecipientAddress(
+                : polkabtc.electrsAPI.getTxIdByRecipientAddress(
                     recipient,
-                    amountBtc
+                    amountBtcBig
                 ));
             const confirmations = await getConfirmationsForTxid(polkabtc, txid);
             const blockHeight =
-                (await polkabtc.btcCore.getTransactionBlockHeight(txid)) || 0;
+                (await polkabtc.electrsAPI.getTransactionBlockHeight(txid)) || 0;
 
             getRepository(RequestTxCache).save({
                 id: requestId,
@@ -91,7 +93,7 @@ export async function getTxDetailsForRequest(
         try {
             const confirmations = await getConfirmationsForTxid(polkabtc, savedDetails.txid);
             const blockHeight =
-                (await polkabtc.btcCore.getTransactionBlockHeight(savedDetails.txid)) || 0;
+                (await polkabtc.electrsAPI.getTransactionBlockHeight(savedDetails.txid)) || 0;
 
             getRepository(RequestTxCache).save({
                 ...savedDetails,
