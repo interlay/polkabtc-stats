@@ -72,12 +72,16 @@ export async function getTotalSuccessfulIssues(): Promise<string> {
     }
 }
 
-export async function getTotalIssues(): Promise<string> {
+export async function getTotalIssues(
+    filters: Filter<IssueColumns>[],
+): Promise<number> {
     try {
         const res = await pool.query(
-            "select count(*) from v_parachain_data_request_issue"
+            `select count(*) from v_parachain_data_request_issue
+            ${filtersToWhere<IssueColumns>(filters)}
+            `
         );
-        return res.rows[0].count;
+        return Number(res.rows[0].count);
     } catch (e) {
         logger.error(e);
         throw e;
@@ -193,6 +197,7 @@ export async function getPagedIssues(
         );
         return Promise.all(
             res.rows.map(async (row) => {
+                console.log(network);
                 const vaultBTCAddress = btcAddressToString(
                     row.btc_address,
                     network

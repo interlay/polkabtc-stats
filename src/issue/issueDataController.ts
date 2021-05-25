@@ -24,14 +24,6 @@ export class IssuesController extends Controller {
     }
 
     /**
-     * Returns the total count of issue requests (regardless of execution).
-     **/
-    @Get("total")
-    public async getTotalIssues(): Promise<string> {
-        return getTotalIssues();
-    }
-
-    /**
      * Retrieves the total value locked (i.e. polkaBTC issued - redeemed), snapshotted at the given timestamps.
      * @param days an array of timestamps, in miliseconds since the UNIX epoch
      **/
@@ -69,15 +61,30 @@ export class IssuesController extends Controller {
         return getPagedIssues(page, perPage, sortBy, sortAsc, [], network);
     }
 
+    /**
+     * Returns the total count of issue requests (regardless of execution).
+     **/
+    @Get("total")
+    public async getTotalIssues(): Promise<number> {
+        return getTotalIssues([]);
+    }
+
     @Post("")
     public async getFilteredIssues(
         @Query() page = 0,
         @Query() perPage = defaultPerPage,
         @Query() sortBy: IssueColumns = "block_number",
         @Query() sortAsc = false,
-        @Body() filters: Filter<IssueColumns>[] = [],
-        @Query() network = "mainnet" as BtcNetworkName
+        @Query() network = "mainnet" as BtcNetworkName,
+        @Body() filters: Filter<IssueColumns>[] = []
     ): Promise<Issue[]> {
         return getPagedIssues(page, perPage, sortBy, sortAsc, filters, network);
+    }
+
+    @Post("total")
+    public async getFilteredTotalIssues(
+        @Body() filters: Filter<IssueColumns>[] = []
+    ): Promise<number> {
+        return getTotalIssues(filters);
     }
 }

@@ -21,8 +21,8 @@ describe("Issue", () => {
     });
 
     it("should return the total count of issues", async () => {
-        const totalCount = await getTotalIssues();
-        const expected = "3516";
+        const totalCount = await getTotalIssues([]);
+        const expected = 3516;
         return assert.equal(totalCount, expected);
     });
 
