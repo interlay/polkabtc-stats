@@ -19,8 +19,8 @@ describe("Redeem", () => {
     });
 
     it("should return the total count of redeems", async () => {
-        const totalCount = await getTotalRedeems();
-        const expected = "974";
+        const totalCount = await getTotalRedeems([]);
+        const expected = 974;
         return assert.equal(totalCount, expected);
     });
 
