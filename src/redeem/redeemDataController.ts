@@ -24,14 +24,6 @@ export class RedeemsController extends Controller {
     }
 
     /**
-     * Returns the total count of redeem requests (regardless of execution).
-     **/
-    @Get("total")
-    public async getTotalRedeems(): Promise<string> {
-        return getTotalRedeems();
-    }
-
-    /**
      * Retrieves the total value of polkaBTC successfully redeemed (all time).
      **/
     @Get("totalAmount")
@@ -50,6 +42,11 @@ export class RedeemsController extends Controller {
         return getRecentDailyRedeems(daysBack);
     }
 
+    /**
+     * Retrieves a paged list of redeem requests.
+     * @param network the BTC network used for redeem transactions; necessary to correctly
+     * decode vault addresses and transaction IDs.
+     **/
     @Get("")
     public async getRedeems(
         @Query() page = 0,
@@ -62,18 +59,21 @@ export class RedeemsController extends Controller {
     }
 
     /**
-     * Retrieves a paged list of issue requests.
-     * @param network the BTC network used for redeem transactions; necessary to correctly
-     * decode vault addresses and transaction IDs.
+     * Returns the total count of redeem requests (regardless of execution).
      **/
+    @Get("total")
+    public async getTotalRedeems(): Promise<number> {
+        return getTotalRedeems([]);
+    }
+
     @Post("")
     public async getFilteredRedeems(
         @Query() page = 0,
         @Query() perPage = defaultPerPage,
         @Query() sortBy: RedeemColumns = "block_number",
         @Query() sortAsc = false,
-        @Body() filters: Filter<RedeemColumns>[] = [],
-        @Query() network: BtcNetworkName = "mainnet"
+        @Query() network: BtcNetworkName = "mainnet",
+        @Body() filters: Filter<RedeemColumns>[] = []
     ): Promise<Redeem[]> {
         return getPagedRedeems(
             page,
@@ -83,5 +83,12 @@ export class RedeemsController extends Controller {
             filters,
             network
         );
+    }
+
+    @Post("total")
+    public async getFilteredTotalRedeems(
+        @Body() filters: Filter<RedeemColumns>[] = [],
+    ): Promise<number> {
+        return getTotalRedeems(filters);
     }
 }

@@ -57,9 +57,9 @@ export function btcAddressToString(
         Object.values<string>(parsedAddress)[0].substring(2),
         "hex"
     );
-    const paymentType = Object.keys(parsedAddress)[0];
+    const paymentType = Object.keys(parsedAddress)[0].toUpperCase();
     const payment =
-        paymentType === "P2WPKHv0"
+        paymentType === "P2WPKHV0"
             ? payments.p2wpkh
             : paymentType === "P2PKH"
             ? payments.p2pkh

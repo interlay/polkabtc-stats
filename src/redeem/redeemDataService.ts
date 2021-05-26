@@ -81,10 +81,14 @@ export async function getTotalSuccessfulRedeems(): Promise<string> {
     }
 }
 
-export async function getTotalRedeems(): Promise<string> {
+export async function getTotalRedeems(
+    filters: Filter<RedeemColumns>[],
+): Promise<number> {
     try {
         const res = await pool.query(
-            "select count(*) from v_parachain_redeem_request"
+            `select count(*) from v_parachain_redeem_request
+            ${filtersToWhere<RedeemColumns>(filters)}
+            `
         );
         return res.rows[0].count;
     } catch (e) {
