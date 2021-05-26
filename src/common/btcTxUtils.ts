@@ -2,7 +2,8 @@ import {PolkaBTCAPI} from "@interlay/polkabtc";
 import { getRepository } from "typeorm";
 import { RequestTxCache } from "../models/RequestTxCache";
 import { getPolkaBtc } from "./polkaBtc";
-import logFn from '../common/logger'
+import logFn from '../common/logger';
+import Big from 'big.js';
 
 export const logger = logFn({ name: 'btcTxUtils' });
 

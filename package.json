@@ -17,8 +17,8 @@
         "test": "PGDATABASE=\"polkabtc_standalone\" PGUSER=\"user\" PGPASSWORD=\"password\" mocha test/**/*.test.ts --timeout 60000"
     },
     "dependencies": {
-        "@interlay/polkabtc": "0.14.4",
-        "@interlay/polkabtc-types": "0.6.2",
+        "@interlay/polkabtc": "0.15.5",
+        "@interlay/polkabtc-types": "0.7.2",
         "@supercharge/promise-pool": "^1.6.0",
         "@types/big.js": "^6.0.2",
         "@types/pg-format": "^1.0.1",
