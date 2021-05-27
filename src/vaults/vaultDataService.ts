@@ -214,18 +214,28 @@ export async function getRecentDailyCollateral(
         return (
             await runPerDayQuery(
                 daysBack,
-                (i, ts) =>
-                    `SELECT
+                (i, ts) => `
+                    SELECT
                         ${i} as idx,
-                        coalesce(sum(balance), 0) AS value
-                    FROM
-                        (
-                            select balance, block_ts from v_parachain_collateral_lock as l
-                            union all
-                            select balance * -1 as balance, block_ts from v_parachain_collateral_release as r
-                            union all
-                            select balance * -1 as balance, block_ts from v_parachain_collateral_slash as s
-                        ) as un
+                        coalesce(sum(collateral::BIGINT), 0) AS value
+                    FROM (
+                        SELECT DISTINCT ON (vault_id)
+                            vault_id,
+                            collateral,
+                            block_ts
+                        FROM (
+                            SELECT
+                                vault_id,
+                                collateral,
+                                block_ts
+                            FROM v_parachain_vault_registration
+                            UNION
+                            SELECT
+                                vault_id,
+                                total_collateral AS collateral,
+                                block_ts
+                                FROM v_parachain_vault_collateral
+                        ) col) as un
                     WHERE block_ts < '${ts}'`
             )
         ).map((row) => ({ date: row.date, amount: new Big(row.value) }));

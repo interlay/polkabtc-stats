@@ -1,8 +1,9 @@
 --
 -- Name: v_parachain_redeem_request; Type: VIEW; Schema: public; Owner: polkabtc_monitor
 --
+DROP VIEW public.v_parachain_redeem_request;
 
-CREATE OR REPLACE VIEW public.v_parachain_redeem_request AS
+CREATE VIEW public.v_parachain_redeem_request AS
  SELECT (v_parachain_data.event_data ->> 0) AS redeem_id,
     (v_parachain_data.event_data ->> 1) AS requester,
     (v_parachain_data.event_data ->> 2) AS amount_polka_btc,
