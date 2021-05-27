@@ -82,7 +82,6 @@ export async function getAllRelayers(
                 reg.block_number,
                 COALESCE(deregistered, FALSE) deregistered,
                 COALESCE(slashed, FALSE) slashed,
-                maturity::Integer < latestblock.block_number bonded,
                 (SELECT COUNT(DISTINCT bitcoin_hash) count
                     FROM v_parachain_stakedrelayer_store
                     WHERE relayer_id = reg.relayer_id AND block_ts > $3) AS block_count,
@@ -99,7 +98,7 @@ export async function getAllRelayers(
                 ) reg
                 LEFT OUTER JOIN
                   (
-                    SELECT relayer_id, sum(delta::BIGINT) as lifetime_sla_change
+                    SELECT vault_id as relayer_id, sum(delta::BIGINT) as lifetime_sla_change
                     FROM v_parachain_stakedrelayer_sla_update_v2
                     WHERE block_ts > $3
                     GROUP BY relayer_id
@@ -136,8 +135,8 @@ export async function getAllRelayers(
             .map((row) => {
                 return {
                     id: row.relayer_id,
-                    stake: planckToDOT(row.stake),
-                    bonded: row.bonded,
+                    stake: planckToDOT(row.stake), // legacy value, unused
+                    bonded: true, // legacy value, unused
                     slashed: row.slashed,
                     lifetime_sla: row.lifetime_sla_change,
                     block_count: row.block_count,
