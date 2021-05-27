@@ -11,6 +11,7 @@ export interface Redeem {
     vaultDotAddress: string;
     btcAddress: string;
     btcTxId: string;
+    btcTransferFee: string;
     confirmations?: number;
     btcBlockHeight: number;
     completed: boolean;

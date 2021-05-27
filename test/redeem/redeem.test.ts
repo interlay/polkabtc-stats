@@ -64,6 +64,7 @@ describe("Redeem", () => {
                 dotPremium: "0",
                 creation: 674212,
                 timestamp: "1618760280002",
+                btcTransferFee: "0",
                 btcAddress: "2MxeZfFqfLu3vt4u8aTiZb7xKLmDpcikdyF",
                 vaultDotAddress:
                     "5DXr7zcyLjcZmapipiDRKKe3X9an6s3JRuJCM8QNXEqepRMS",
@@ -84,6 +85,7 @@ describe("Redeem", () => {
                 dotPremium: "0.1187632",
                 creation: 674203,
                 timestamp: "1618760226000",
+                btcTransferFee: "0",
                 btcAddress: "2MxeZfFqfLu3vt4u8aTiZb7xKLmDpcikdyF",
                 vaultDotAddress:
                     "5EqncXtDo93yRgHQTFxvfkQFFrt85UTmh8WjLMaGsvyZV174",
@@ -104,6 +106,7 @@ describe("Redeem", () => {
                 dotPremium: "15.58767",
                 creation: 674192,
                 timestamp: "1618760160000",
+                btcTransferFee: "0",
                 btcAddress: "2MxeZfFqfLu3vt4u8aTiZb7xKLmDpcikdyF",
                 vaultDotAddress:
                     "5EqncXtDo93yRgHQTFxvfkQFFrt85UTmh8WjLMaGsvyZV174",
