@@ -40,24 +40,24 @@ export class RelayersController extends Controller {
      **/
     @Get("")
     public async getRelayers(
+        @Query() slaSince: number,
         @Query() page = 0,
         @Query() perPage = defaultPerPage,
         @Query() sortBy: RelayerChallengeColumns = "block_number",
-        @Query() sortAsc = false,
-        @Query() slaSince: number
+        @Query() sortAsc = false
     ): Promise<RelayerData[]> {
-        return getAllRelayers(page, perPage, sortBy, sortAsc, [], slaSince);
+        return getAllRelayers(slaSince, page, perPage, sortBy, sortAsc, []);
     }
 
     @Post("")
     public async getFilteredRelayers(
+        @Query() slaSince: number,
         @Query() page = 0,
         @Query() perPage = defaultPerPage,
         @Query() sortBy: RelayerChallengeColumns = "block_number",
         @Query() sortAsc = false,
-        @Body() filters: Filter<RelayerChallengeColumns>[] = [],
-        @Query() slaSince: number
+        @Body() filters: Filter<RelayerChallengeColumns>[] = []
     ): Promise<RelayerData[]> {
-        return getAllRelayers(page, perPage, sortBy, sortAsc, filters, slaSince);
+        return getAllRelayers(slaSince, page, perPage, sortBy, sortAsc, filters);
     }
 }

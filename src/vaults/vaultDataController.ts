@@ -57,23 +57,23 @@ export class VaultsController extends Controller {
      **/
     @Get("challengeVaultList")
     public async getChallengeVaults(
+        @Query() slaSince: number,
         @Query() page = 0,
         @Query() perPage = defaultPerPage,
         @Query() sortBy: VaultChallengeColumns = "block_number",
-        @Query() sortAsc = false,
-        @Query() slaSince: number
+        @Query() sortAsc = false
     ): Promise<VaultChallengeData[]> {
         return getChallengeVaults(page, perPage, sortBy, sortAsc, [], slaSince);
     }
 
     @Post("challengeVaultList")
     public async getChallengeFilteredVaults(
+        @Query() slaSince: number,
         @Query() page = 0,
         @Query() perPage = defaultPerPage,
         @Query() sortBy: VaultChallengeColumns = "block_number",
         @Query() sortAsc = false,
-        @Body() filters: Filter<VaultChallengeColumns>[] = [],
-        @Query() slaSince: number
+        @Body() filters: Filter<VaultChallengeColumns>[] = []
     ): Promise<VaultChallengeData[]> {
         return getChallengeVaults(page, perPage, sortBy, sortAsc, filters, slaSince);
     }

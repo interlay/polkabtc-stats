@@ -20,9 +20,12 @@ export async function getRecentDailyRelayers(
         return (await pool.query(`
         SELECT extract(epoch from d.date) * 1000 as date,
         (
-            SELECT COUNT(relayer_id) AS reg
-            FROM v_parachain_stakedrelayer_register
-            WHERE block_ts::date <= d.date AND maturity::Integer < (SELECT max(block_number) as block_number FROM parachain_events)
+            SELECT COUNT(*) AS reg
+            FROM v_parachain_data
+            WHERE block_ts::date <= d.date
+                AND "section"='btcRelay'::text
+                AND "method"='StoreMainChainHeader'::text
+            GROUP BY event_data->>2
         ) as regs,
         (SELECT COUNT(relayer_id) AS dereg FROM v_parachain_stakedrelayer_deregister WHERE block_ts::date <= d.date) as deregs
         FROM (SELECT (current_date - offs) AS date FROM generate_series(0, $1, 1) AS offs) d
@@ -64,18 +67,18 @@ export async function getRelayersWithTrackRecord(
 }
 
 export async function getAllRelayers(
+    slaSince: number,
     page: number,
     perPage: number,
     sortBy: RelayerChallengeColumns,
     sortAsc: boolean,
-    filters: Filter<RelayerChallengeColumns>[],
-    slaSince: number
+    filters: Filter<RelayerChallengeColumns>[]
 ): Promise<RelayerData[]> {
     try {
         const res = await pool.query(`
             SELECT DISTINCT ON (reg.relayer_id)
                 reg.relayer_id,
-                reg.stake,
+                0 as stake,
                 reg.block_number,
                 COALESCE(deregistered, FALSE) deregistered,
                 COALESCE(slashed, FALSE) slashed,
@@ -85,7 +88,15 @@ export async function getAllRelayers(
                     WHERE relayer_id = reg.relayer_id AND block_ts > $3) AS block_count,
                 COALESCE(lifetime_sla_change, 0) lifetime_sla_change
             FROM
-                v_parachain_stakedrelayer_register reg
+                (
+                    SELECT DISTINCT ON (event_data->>2)
+                        event_data->>2 AS relayer_id,
+                        block_number
+                    FROM v_parachain_data
+                    WHERE "section"='btcRelay'::text
+                        AND "method"='StoreMainChainHeader'::text
+                    ORDER BY event_data->>2, block_number DESC
+                ) reg
                 LEFT OUTER JOIN
                   (
                     SELECT relayer_id, sum(delta::BIGINT) as lifetime_sla_change
