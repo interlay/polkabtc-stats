@@ -115,11 +115,13 @@ export async function getVaultStats(): Promise<VaultStats> {
                 stddev_pop(collateral) stddev
             FROM
             (SELECT DISTINCT ON (vault_id) collateral::BIGINT
-                FROM
-                (SELECT vault_id, collateral, block_ts
+                FROM (
+                    SELECT vault_id, collateral, block_ts
                     FROM v_parachain_vault_registration
-                UNION SELECT vault_id, total_collateral AS collateral, block_ts
-                FROM v_parachain_vault_collateral) c
+                    UNION
+                    SELECT vault_id, total_collateral AS collateral, block_ts
+                    FROM v_parachain_vault_collateral
+                ) c
             ORDER BY vault_id, block_ts DESC) col
         `);
         const row = res.rows[0];
@@ -439,7 +441,7 @@ export async function getChallengeVaults(
             FROM v_parachain_vault_collateral
         ) reg
         ${filtersToWhere<VaultChallengeColumns>(filters)}
-        ORDER BY reg.vault_id DESC,
+        ORDER BY reg.vault_id DESC, reg.block_number DESC,
         ${format.ident(sortBy)} ${sortAsc ? "ASC" : "DESC"}
         LIMIT $1 OFFSET $2
         `,
