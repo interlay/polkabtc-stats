@@ -20,12 +20,15 @@ export async function getRecentDailyRelayers(
         return (await pool.query(`
         SELECT extract(epoch from d.date) * 1000 as date,
         (
-            SELECT COUNT(*) AS reg
-            FROM v_parachain_data
-            WHERE block_ts::date <= d.date
-                AND "section"='btcRelay'::text
-                AND "method"='StoreMainChainHeader'::text
-            GROUP BY event_data->>2
+            SELECT COUNT(*) regs
+            FROM (
+                SELECT event_data->>2 AS id
+                FROM v_parachain_data
+                WHERE block_ts::date <= d.date
+                    AND "section"='btcRelay'::text
+                    AND "method"='StoreMainChainHeader'::text
+                GROUP BY event_data->>2
+            ) regs
         ) as regs,
         (SELECT COUNT(relayer_id) AS dereg FROM v_parachain_stakedrelayer_deregister WHERE block_ts::date <= d.date) as deregs
         FROM (SELECT (current_date - offs) AS date FROM generate_series(0, $1, 1) AS offs) d
