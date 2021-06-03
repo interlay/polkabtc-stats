@@ -237,7 +237,9 @@ export async function getRecentDailyCollateral(
                                 total_collateral AS collateral,
                                 block_ts
                                 FROM v_parachain_vault_collateral
-                        ) col) as un
+                        ) col
+                        ORDER BY vault_id, block_ts DESC
+                    ) vaults
                     WHERE block_ts < '${ts}'`
             )
         ).map((row) => ({ date: row.date, amount: new Big(row.value) }));
@@ -423,7 +425,7 @@ export async function getChallengeVaults(
     try {
         const res = await pool.query(
             `
-        SELECT DISTINCT ON (reg.vault_id)
+        SELECT
         reg.vault_id,
         reg.block_number,
         reg.collateral,
@@ -434,15 +436,27 @@ export async function getChallengeVaults(
         (SELECT COUNT(DISTINCT redeem_id) count FROM v_parachain_redeem_cancel WHERE vault_id = reg.vault_id AND block_ts > $3) AS cancel_redeem_count,
         coalesce((SELECT sum(delta::BIGINT) as lifetime_sla_change FROM v_parachain_vault_sla_update_v2 WHERE vault_id = reg.vault_id AND block_ts > $3 GROUP BY vault_id), 0) AS lifetime_sla_change
         FROM (
-            SELECT vault_id, collateral, block_number
-            FROM v_parachain_vault_registration
-            UNION
-            SELECT vault_id, total_collateral, block_number
-            FROM v_parachain_vault_collateral
+            SELECT DISTINCT ON (vault_id)
+                vault_id,
+                block_number,
+                collateral
+            FROM (
+                SELECT
+                    vault_id,
+                    collateral,
+                    block_number
+                FROM v_parachain_vault_registration
+                UNION
+                SELECT
+                    vault_id,
+                    total_collateral AS collateral,
+                    block_number
+                FROM v_parachain_vault_collateral
+            ) col
+            ORDER BY vault_id, block_number DESC
         ) reg
         ${filtersToWhere<VaultChallengeColumns>(filters)}
-        ORDER BY reg.vault_id DESC, reg.block_number DESC,
-        ${format.ident(sortBy)} ${sortAsc ? "ASC" : "DESC"}
+        ORDER BY ${format.ident(sortBy)} ${sortAsc ? "ASC" : "DESC"}
         LIMIT $1 OFFSET $2
         `,
             [perPage, page * perPage, new Date(slaSince)]
